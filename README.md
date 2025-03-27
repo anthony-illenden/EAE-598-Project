@@ -1,9 +1,21 @@
 # EAE-598-Project
 
+### Title: Identifying Synoptic Patterns of Landfalling Atmospheric River Events with and without Mesoscale Frontal Waves Using Machine Learning. 
+
+### Project Members: Tony Illenden and Hunter Martinez-Buehrer
+
 ### Geoscience Problem & Introduction
 Atmospheric rivers (ARs) are long, narrow synoptic-scale features that transport copious amounts of water vapor from the equator to the poles (Zhu and Newell 1998). While ARs are important to the water cycle for many regions across the western United States, they can also bring significant hazards. Their extreme precipitation rates and long durations often lead to excessive runoff and catastrophic floods, causing substantial societal and economic impacts (Neiman et al. 2011; Corringham et al. 2019; Ralph et al. 2019). Mesoscale frontal waves (MFWs) occasionally develop within ARs, enhancing ascent and moisture transport, which can significantly modulate their orientation and landfall location (Neiman et al. 2004, 2011; Martin et al. 2019; Demirdjian et al. 2020; Michaelis et al. 2021). Due to the limited understanding of MFWs, predicting their development and subsequent effects on ARs poses a considerable short- and long-term predictability challenge to forecasters (Hecht et al. 2022). Therefore, the goal of this project is to use machine learning (ML) techniques to identify synoptic patterns linked to AR events with and without MFWs and compare the differences. Ultimately, this will improve forecasters’ ability to recognize these key patterns, leading to more accurate weather forecasts across the western United States.
 
 ### Methods: 
+
+### Results: 
+
+### Discussion: 
+
+### Conclusion: 
+
+### Acknowledgements
 
 ### References: 
 - Badrinath, A., L. D. Monache, N. Hayatbini, W. Chapman, F. Cannon, and M. Ralph, 2023: Improving Precipitation Forecasts with Convolutional Neural Networks. https://doi.org/10.1175/WAF-D-22-0002.1.
