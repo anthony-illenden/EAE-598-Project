@@ -1,1 +1,21 @@
 # EAE-598-Project
+
+### Geoscience Problem & Introduction
+Atmospheric rivers (ARs) are long, narrow synoptic-scale features that transport copious amounts of water vapor from the equator to the poles (Zhu and Newell 1998). While ARs are important to the water cycle for many regions across the western United States, they can also bring significant hazards. Their extreme precipitation rates and long durations often lead to excessive runoff and catastrophic floods, causing substantial societal and economic impacts (Neiman et al. 2011; Corringham et al. 2019; Ralph et al. 2019). Mesoscale frontal waves (MFWs) occasionally develop within ARs, enhancing ascent and moisture transport, which can significantly modulate their orientation and landfall location (Neiman et al. 2004, 2011; Martin et al. 2019; Demirdjian et al. 2020; Michaelis et al. 2021). Due to the limited understanding of MFWs, predicting their development and subsequent effects on ARs poses a considerable short- and long-term predictability challenge to forecasters (Hecht et al. 2022). Therefore, the goal of this project is to use machine learning (ML) techniques to identify synoptic patterns linked to AR events with and without MFWs and compare the differences. Ultimately, this will improve forecasters’ ability to recognize these key patterns, leading to more accurate weather forecasts across the western United States.
+
+### Methods: 
+
+### References: 
+- Badrinath, A., L. D. Monache, N. Hayatbini, W. Chapman, F. Cannon, and M. Ralph, 2023: Improving Precipitation Forecasts with Convolutional Neural Networks. https://doi.org/10.1175/WAF-D-22-0002.1.
+- Corringham, T. W., F. M. Ralph, A. Gershunov, D. R. Cayan, and C. A. Talbot, 2019: Atmospheric rivers drive flood damages in the western United States. Science Advances, 5, eaax4631, https://doi.org/10.1126/sciadv.aax4631.
+- Demirdjian, R., J. D. Doyle, C. A. Reynolds, J. R. Norris, A. C. Michaelis, and F. M. Ralph, 2020: A Case Study of the Physical Processes Associated with the Atmospheric River Initial-Condition Sensitivity from an Adjoint Model. https://doi.org/10.1175/JAS-D-19-0155.1.
+- Hecht, C. W., A. C. Michaelis, A. C. Martin, J. M. Cordeira, F. Cannon, and F. M. Ralph, 2022: Illustrating Ensemble Predictability across Scales Associated with the 13–15 February 2019 Atmospheric River Event. https://doi.org/10.1175/BAMS-D-20-0292.1.
+- Hersbach, H., and Coauthors, 2020: The ERA5 global reanalysis. Quarterly Journal of the Royal Meteorological Society, 146, 1999–2049, https://doi.org/10.1002/qj.3803.
+- Hu, W., M. Ghazvinian, W. E. Chapman, A. Sengupta, F. M. Ralph, and L. D. Monache, 2023: Deep Learning Forecast Uncertainty for Precipitation over the Western United States. https://doi.org/10.1175/MWR-D-22-0268.1.
+- Martin, A. C., F. M. Ralph, A. Wilson, L. DeHaan, and B. Kawzenuk, 2019: Rapid Cyclogenesis from a Mesoscale Frontal Wave on an Atmospheric River: Impacts on Forecast Skill and Predictability during Atmospheric River Landfall. https://doi.org/10.1175/JHM-D-18-0239.1.
+- Michaelis, A. C., A. C. Martin, M. A. Fish, C. W. Hecht, and F. M. Ralph, 2021: Modulation of Atmospheric Rivers by Mesoscale Frontal Waves and Latent Heating: Comparison of Two U.S. West Coast Events. https://doi.org/10.1175/MWR-D-20-0364.1.
+- Neiman, P. J., F. M. Ralph, P. O. G. Persson, A. B. White, D. P. Jorgensen, and D. E. Kingsmill, 2004: Modification of Fronts and Precipitation by Coastal Blocking during an Intense Landfalling Winter Storm in Southern California: Observations during CALJET.
+- ——, L. J. Schick, F. M. Ralph, M. R. Abel, and G. A. Wick, 2011: Flooding in Western Washington: The Connection to Atmospheric Rivers*. https://doi.org/10.1175/2011JHM1358.1.
+- Osborne, A. P., J. Zhang, M. J. Simpson, K. W. Howard, and S. B. Cocks, 2023: Application of Machine Learning Techniques to Improve Multi-Radar Multi-Sensor (MRMS) Precipitation Estimates in the Western United States. https://doi.org/10.1175/AIES-D-22-0053.1.
+- Ralph, F. M., J. J. Rutz, J. M. Cordeira, M. Dettinger, M. Anderson, D. Reynolds, L. J. Schick, and C. Smallcomb, 2019: A Scale to Characterize the Strength and Impacts of Atmospheric Rivers. https://doi.org/10.1175/BAMS-D-18-0023.1.
+- Zhu, Y., and R. E. Newell, 1998: A Proposed Algorithm for Moisture Fluxes from Atmospheric Rivers.
