@@ -232,6 +232,17 @@ def get_point_data(final_ds, lat, lon, buffer):
     ds_area_point_median = ds_area_point.median(dim=['latitude', 'longitude'])
     return ds_area_point_median
 
+def add_time_dimension(final_ds, year, month, day, start_hour):
+    formatted_time = np.datetime64(pd.to_datetime(f"{year}-{month:02d}-{day:02d} {start_hour:02d}:00"))
+    ds_final = final_ds.expand_dims(time=[formatted_time])
+    
+    return ds_final
+
+def save_to_csv(ds_point, year, month, day):
+    df = ds_point.to_dataframe().reset_index()
+    output_file = f"ds_point_{year}-{month:02d}-{day:02d}_hour.csv"
+    df.to_csv(output_file, index=False)
+
 def main():
     year = 2019
     month = 2
@@ -309,6 +320,9 @@ def main():
 
             print(ds_point)
 
+            ds_point_time = add_time_dimension(ds_point, year, month, day, start_hour)
+
+            save_to_csv(ds_point_time, year, month, day)
 
         if ds_pl is None or ds_sfc is None:
             print(f"Skipping {year}-{month:02d}-{day:02d} due to missing datasets.")
