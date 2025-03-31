@@ -225,8 +225,12 @@ def get_fgen(ds_pl, level):
 
     return fgen
 
-#def get_point_data():
-    #return 
+def get_point_data(final_ds, lat, lon, buffer):
+    # Convert longitude from west to east
+    lon_e = 360 - lon 
+    ds_area_point = final_ds.sel(latitude=slice(lat + buffer, lat - buffer), longitude=slice(lon_e - buffer, lon_e + buffer))
+    ds_area_point_median = ds_area_point.median(dim=['latitude', 'longitude'])
+    return ds_area_point_median
 
 def main():
     year = 2019
@@ -242,6 +246,8 @@ def main():
                 'South': 20, 
                 'West': 200} # units: degrees North, degrees East
     g = 9.81 # units: m/s^2
+    lat, lon = 39.5, 130
+    buffer = 0.25 # units: degrees
 
     for day in range(first_day, last_day + 1):
         print(f"Processing data for {year}-{month:02d}-{day:02d}...")
@@ -298,6 +304,11 @@ def main():
             ], compat='override')         
 
             print(final_ds)
+
+            ds_point = get_point_data(final_ds, lat, lon, buffer)
+
+            print(ds_point)
+
 
         if ds_pl is None or ds_sfc is None:
             print(f"Skipping {year}-{month:02d}-{day:02d} due to missing datasets.")
