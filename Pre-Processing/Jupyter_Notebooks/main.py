@@ -186,10 +186,44 @@ def get_geopotential_height(ds_pl, level):
 
 def get_temperature(ds_pl, level):
     t = ds_pl['T'].sel(level=level)  # Temperature in Kelvin
+    return t
 
 def get_specific_humidity(ds_pl, level):
     q = ds_pl['Q'].sel(level=level)  # Specific humidity in kg/kg
     return q
+
+def get_thetae(ds_pl, level):
+    u_sliced = ds_pl['U'].sel(level=level) # units: m/s
+    v_sliced = ds_pl['V'].sel(level=level) # units: m/s
+    q_sliced = ds_pl['Q'].sel(level=level) # units: kg/kg
+    t_sliced = ds_pl['T'].sel(level=level) # units: K
+    pv_sliced = ds_pl['PV'].sel(level=level) * 1e6 # units: PVU
+
+    # Convert them to Pa from hPa
+    pressure_levels = u_sliced.level.metpy.convert_units('hPa')  # units: hPa
+
+    # Calculate dewpoint and theta-e
+    td = mpcalc.dewpoint_from_specific_humidity(pressure_levels, t_sliced, q_sliced)
+    theta_e = mpcalc.equivalent_potential_temperature(pressure_levels, t_sliced, td) # units: K
+
+    return theta_e 
+
+def get_temp_grad(var, var_name):
+    dT_dx, dT_dy = mpcalc.geospatial_gradient(var)  # units: K/m
+    temp_grad = np.sqrt(dT_dx**2 + dT_dy**2) * 1000 * 100  # units: K/100 km
+    temp_grad_da = xr.DataArray(temp_grad, dims=['latitude', 'longitude'], coords={'latitude': var['latitude'], 'longitude': var['longitude']})
+    temp_grad_da.name = f'{var_name}_grad'
+
+    return temp_grad
+
+def get_fgen(ds_pl, level):
+    u_sliced = ds_pl['U'].sel(level=level) # units: m/s
+    v_sliced = ds_pl['V'].sel(level=level) # units: m/s
+    t_sliced = ds_pl['T'].sel(level=level) # units: K
+    theta = mpcalc.potential_temperature(level*units.hPa, t_sliced) # units: K
+    fgen = mpcalc.frontogenesis(theta, u_sliced, v_sliced) * 1000*100*3600*3 # units: K per 100 km 3h
+
+    return fgen
 
 #def get_point_data():
     #return 
@@ -219,42 +253,51 @@ def main():
             ds_pl_time_sliced = ds_pl_sliced.isel(time=i)
             ds_sfc_time_sliced = ds_sfc_sliced.isel(time=i)
 
-            pv_300 = get_pv(ds_pl_time_sliced, level=250)
-            pv_925 = get_pv(ds_pl_time_sliced, level=925)
-            wnd_300 = get_wnd(ds_pl_time_sliced, level=300)
+            pv_300, pv_925 = get_pv(ds_pl_time_sliced, level=300), get_pv(ds_pl_time_sliced, level=925)
+            wnd_300, wnd_500, wnd_850 = get_wnd(ds_pl_time_sliced, level=300), get_wnd(ds_pl_time_sliced, level=500), get_wnd(ds_pl_time_sliced, level=850)
+            z_250, z_500, z_850 = get_geopotential_height(ds_pl_time_sliced, level=250), get_geopotential_height(ds_pl_time_sliced, level=500), get_geopotential_height(ds_pl_time_sliced, level=850)
+            t_250, t_500, t_850, t_925, t_1000 = get_temperature(ds_pl_time_sliced, level=250), get_temperature(ds_pl_time_sliced, level=500), get_temperature(ds_pl_time_sliced, level=850), get_temperature(ds_pl_time_sliced, level=925), get_temperature(ds_pl_time_sliced, level=1000)
+            q_850, q_925, q_1000 = get_specific_humidity(ds_pl_time_sliced, level=850), get_specific_humidity(ds_pl_time_sliced, level=925), get_specific_humidity(ds_pl_time_sliced, level=1000)
             ivt = get_ivt(ds_pl_time_sliced, g=g)
             thickness_1000_500 = get_thickness(ds_pl_time_sliced, level1=1000, level2=500)
             qvec_div, qvec_magn = get_qvec(ds_pl_time_sliced, g=g)
             abs_vort = get_absolute_vorticity(ds_pl_time_sliced, level=500, g=g)
-            z_500 = get_geopotential_height(ds_pl_time_sliced, level=500)
-            z_850 = get_geopotential_height(ds_pl_time_sliced, level=850)
-            t_850 = get_temperature(ds_pl_time_sliced, level=850)
-            t_925 = get_temperature(ds_pl_time_sliced, level=925)
-            q_850 = get_specific_humidity(ds_pl_time_sliced, level=850)
-            q_925 = get_specific_humidity(ds_pl_time_sliced, level=925)
+            thetae_925 = get_thetae(ds_pl_time_sliced, level=925)
+            #grad_thetae_925 = get_temp_grad(thetae_925, var_name='thetae_925')
+            fgen_925 = get_fgen(ds_pl_time_sliced, level=925)
 
-            combined_ds = xr.Dataset(
-                {
-                    "pv_300": pv_300,
-                    "pv_925": pv_925,
-                    "wnd_300": wnd_300,
-                    "ivt": ivt,
-                    "thickness_1000_500": thickness_1000_500,
-                    "qvec_div": qvec_div,
-                    "qvec_magn": qvec_magn,
-                    "abs_vort": abs_vort,
-                    "z_500": z_500,
-                    "z_850": z_850,
-                    "t_850": t_850,
-                    "t_925": t_925,
-                    "q_850": q_850,
-                    "q_925": q_925},
-                coords={
-                    "latitude": pv_300.latitude,
-                    "longitude": pv_300.longitude},
-                compat="override")
+            pv_300 = pv_300.rename("pv_300")
+            pv_925 = pv_925.rename("pv_925")
+            wnd_300 = wnd_300.rename("wnd_300")
+            wnd_500 = wnd_500.rename("wnd_500")
+            wnd_850 = wnd_850.rename("wnd_850")
+            z_250 = z_250.rename("z_250")
+            z_500 = z_500.rename("z_500")
+            z_850 = z_850.rename("z_850")
+            t_250 = t_250.rename("t_250")
+            t_500 = t_500.rename("t_500")
+            t_850 = t_850.rename("t_850")
+            t_925 = t_925.rename("t_925")
+            t_1000 = t_1000.rename("t_1000")
+            q_850 = q_850.rename("q_850")
+            q_925 = q_925.rename("q_925")
+            q_1000 = q_1000.rename("q_1000")
+            ivt = ivt.rename("ivt")
+            thickness_1000_500 = thickness_1000_500.rename("thickness_1000_500")
+            qvec_div = qvec_div.rename("qvec_div")
+            qvec_magn = qvec_magn.rename("qvec_magn")
+            abs_vort = abs_vort.rename("abs_vort")
+            thetae_925 = thetae_925.rename("thetae_925")
+            fgen_925 = fgen_925.rename("fgen_925")
 
-            print(combined_ds)            
+            final_ds = xr.merge([
+                pv_300, pv_925, wnd_300, wnd_500, wnd_850,
+                z_250, z_500, z_850, t_250, t_500, t_850, t_925, t_1000,
+                q_850, q_925, q_1000, ivt, thickness_1000_500,
+                qvec_div, qvec_magn, abs_vort, thetae_925, fgen_925
+            ], compat='override')         
+
+            print(final_ds)
 
         if ds_pl is None or ds_sfc is None:
             print(f"Skipping {year}-{month:02d}-{day:02d} due to missing datasets.")
