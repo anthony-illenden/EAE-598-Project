@@ -1,16 +1,10 @@
-import numpy as np
-import xarray as xr
-import matplotlib.pyplot as plt
-import matplotlib.colors as mcolors
+import os
 import pandas as pd
-import cartopy.crs as ccrs
-import cartopy.feature as cfeature
-from siphon.catalog import TDSCatalog
+import xarray as xr
+import numpy as np
 import metpy.calc as mpcalc
 from metpy.units import units
-from scipy.ndimage import gaussian_filter
-from cartopy.mpl.ticker import LongitudeFormatter, LatitudeFormatter
-import time as datetime
+from siphon.catalog import TDSCatalog
 
 # Code from Tony's EAE 595 Project (https://github.com/anthony-illenden/EAE-593-Project)
 def load_datasets(year, month, start_day, start_hour=0, end_day=None, end_hour=23):
@@ -210,11 +204,10 @@ def get_thetae(ds_pl, level):
 
 def get_temp_grad(var, var_name):
     dT_dx, dT_dy = mpcalc.geospatial_gradient(var)  # units: K/m
-    temp_grad = np.sqrt(dT_dx**2 + dT_dy**2) * 1000 * 100  # units: K/100 km
+    temp_grad = np.sqrt(dT_dx**2 + dT_dy**2) * 1000 * 100  * units.meters / units.kilometers # units: K/100 km
     temp_grad_da = xr.DataArray(temp_grad, dims=['latitude', 'longitude'], coords={'latitude': var['latitude'], 'longitude': var['longitude']})
-    temp_grad_da.name = f'{var_name}_grad'
 
-    return temp_grad
+    return temp_grad_da
 
 def get_fgen(ds_pl, level):
     u_sliced = ds_pl['U'].sel(level=level) # units: m/s
@@ -224,6 +217,53 @@ def get_fgen(ds_pl, level):
     fgen = mpcalc.frontogenesis(theta, u_sliced, v_sliced) * 1000*100*3600*3 # units: K per 100 km 3h
 
     return fgen
+
+def get_rel_vort(ds_pl, level):
+    u_sliced = ds_pl['U'].sel(level=level) # units: m/s
+    v_sliced = ds_pl['V'].sel(level=level) # units: m/s
+    lats, lons = u_sliced['latitude'], u_sliced['longitude']
+    dx, dy = mpcalc.lat_lon_grid_deltas(lons, lats) # units: m
+    rel_vort = mpcalc.vorticity(u=u_sliced, v=v_sliced, dx=dx, dy=dy) * 1e5 # units: 1/s 
+
+    return rel_vort
+
+def get_tadv(ds_pl, level):
+    u_sliced = ds_pl['U'].sel(level=level) # units: m/s
+    v_sliced = ds_pl['V'].sel(level=level) # units: m/s
+    t_sliced = ds_pl['T'].sel(level=level) # units: K
+    lats, lons = u_sliced['latitude'], u_sliced['longitude']
+    dx, dy = mpcalc.lat_lon_grid_deltas(lons, lats) # units: m
+
+    tadv = mpcalc.advection(t_sliced, u=u_sliced, v=v_sliced, dx=dx, dy=dy) * 3600 * units.seconds / units.hour # units: k/hr
+
+    return tadv
+
+def get_total_deformation(ds_pl, level):
+    u_sliced = ds_pl['U'].sel(level=level) # units: m/s
+    v_sliced = ds_pl['V'].sel(level=level) # units: m/s
+    lats, lons = u_sliced['latitude'], u_sliced['longitude']
+    dx, dy = mpcalc.lat_lon_grid_deltas(lons, lats) # units: m
+    total_deformation = mpcalc.total_deformation(u=u_sliced, v=v_sliced, dx=dx, dy=dy) * 1e5 # units: 1/s 
+
+    return total_deformation
+
+def get_shearing_deformation(ds_pl, level):
+    u_sliced = ds_pl['U'].sel(level=level) # units: m/s
+    v_sliced = ds_pl['V'].sel(level=level) # units: m/s
+    lats, lons = u_sliced['latitude'], u_sliced['longitude']
+    dx, dy = mpcalc.lat_lon_grid_deltas(lons, lats) # units: m
+    shearing_deformation = mpcalc.shearing_deformation(u=u_sliced, v=v_sliced, dx=dx, dy=dy) * 1e5 # units: 1/s 
+
+    return shearing_deformation
+
+def get_stretching_deformation(ds_pl, level):
+    u_sliced = ds_pl['U'].sel(level=level) # units: m/s
+    v_sliced = ds_pl['V'].sel(level=level) # units: m/s
+    lats, lons = u_sliced['latitude'], u_sliced['longitude']
+    dx, dy = mpcalc.lat_lon_grid_deltas(lons, lats) # units: m
+    stretching_deformation = mpcalc.stretching_deformation(u=u_sliced, v=v_sliced, dx=dx, dy=dy) * 1e5 # units: 1/s 
+
+    return stretching_deformation
 
 def get_point_data(final_ds, lat, lon, buffer):
     # Convert longitude from west to east
@@ -238,51 +278,87 @@ def add_time_dimension(final_ds, year, month, day, start_hour):
     
     return ds_final
 
-def save_to_csv(ds_point, year, month, day):
+def save_to_csv(ds_point, year, month, day, label, output_file="all_events.csv"):
     df = ds_point.to_dataframe().reset_index()
-    output_file = f"ds_point_{year}-{month:02d}-{day:02d}_hour.csv"
-    df.to_csv(output_file, index=False)
+    df['label'] = label
+    df['year'] = year
+    df['month'] = month
+    df['day'] = day
+
+    # Check if the file exists to determine if headers should be written
+    file_exists = os.path.isfile(output_file)
+
+    # Append data to a single CSV
+    df.to_csv(output_file, mode='a', header=not file_exists, index=False)
 
 def main():
-    year = 2019
-    month = 2
-    first_day = 13
-    last_day = 13
-    start_hour = 0
-    end_hour = start_hour + 1
-    level_1 = 1000
-    level_2 = 500
-    directions = {'North': 55, 
-                'East': 250, 
-                'South': 20, 
-                'West': 200} # units: degrees North, degrees East
-    g = 9.81 # units: m/s^2
-    lat, lon = 39.5, 130
-    buffer = 0.25 # units: degrees
+    events = [
+        {"year": 2017, "month": 2, "start_day": 20, "start_hour": 3, "lat": 39.5, "lon": 130, "label": "MFW"},
+        {"year": 2019, "month": 2, "start_day": 13, "start_hour": 17, "lat": 34, "lon": 131, "label": "MFW"},
+        {"year": 2015, "month": 11, "start_day": 19, "start_hour": 2, "lat": 45.5, "lon": 131, "label": "MFW"},
+        {"year": 2016, "month": 1, "start_day": 28, "start_hour": 17, "lat": 41, "lon": 141, "label": "MFW"},
+        {"year": 2014, "month": 2, "start_day": 7, "start_hour": 13, "lat": 40, "lon": 134, "label": "MFW"},
+        {"year": 2012, "month": 10, "start_day": 18, "start_hour": 9, "lat": 45, "lon": 141, "label": "MFW"},
+        {"year": 2017, "month": 11, "start_day": 15, "start_hour": 6, "lat": 35, "lon": 135, "label": "MFW"},
+        {"year": 2017, "month": 3, "start_day": 17, "start_hour": 6, "lat": 39, "lon": 138, "label": "MFW"},
+        {"year": 2011, "month": 11, "start_day": 22, "start_hour": 14, "lat": 40, "lon": 135, "label": "MFW"},
+        {"year": 2023, "month": 1, "start_day": 9, "start_hour": 12, "lat": 31, "lon": 130, "label": "MFW"},
+        {"year": 2010, "month": 3, "start_day": 12, "start_hour": 0, "lat": 40, "lon": 132, "label": "noMFW"},
+        {"year": 2014, "month": 11, "start_day": 3, "start_hour": 10, "lat": 39, "lon": 145, "label": "noMFW"},
+        {"year": 2018, "month": 1, "start_day": 23, "start_hour": 9, "lat": 40, "lon": 135, "label": "noMFW"},
+        {"year": 2018, "month": 11, "start_day": 22, "start_hour": 11, "lat": 40, "lon": 132, "label": "noMFW"},
+        {"year": 2010, "month": 2, "start_day": 26, "start_hour": 3, "lat": 35, "lon": 131, "label": "noMFW"},
+        {"year": 2012, "month": 3, "start_day": 9, "start_hour": 4, "lat": 44, "lon": 131, "label": "noMFW"},
+        {"year": 2013, "month": 11, "start_day": 11, "start_hour": 17, "lat": 36, "lon": 132, "label": "noMFW"},
+        {"year": 2016, "month": 1, "start_day": 17, "start_hour": 9, "lat": 35, "lon": 130, "label": "noMFW"},
+        {"year": 2016, "month": 11, "start_day": 7, "start_hour": 11, "lat": 36, "lon": 138, "label": "noMFW"},
+        {"year": 2017, "month": 3, "start_day": 28, "start_hour": 18, "lat": 40, "lon": 140, "label": "noMFW"}
+    ]
 
-    for day in range(first_day, last_day + 1):
-        print(f"Processing data for {year}-{month:02d}-{day:02d}...")
+    directions = {'North': 55, 'East': 250, 'South': 20, 'West': 200}  # units: degrees North, degrees East
+    g = 9.81  # units: m/s^2
+    buffer = 0.25  # units: degrees
+
+    for event in events:
+        year, month, day, start_hour = event["year"], event["month"], event["start_day"], event["start_hour"]
+        lat, lon, label = event["lat"], event["lon"], event["label"]
+        end_hour = start_hour + 1
+
+        print(f"Processing data for {year}-{month:02d}-{day:02d} from {start_hour}:00 to {end_hour}:00...")
+
         ds_pl, ds_sfc = load_datasets(year=year, month=month, start_day=day, end_day=day, start_hour=0, end_hour=23)
+        if ds_pl is None or ds_sfc is None:
+            print(f"Skipping {year}-{month:02d}-{day:02d} due to missing datasets.")
+            continue
+
         ds_pl_sliced, ds_sfc_sliced = slice_dataset_to_domain(ds_pl=ds_pl, ds_sfc=ds_sfc, directions=directions)
 
-        for i in range(start_hour, end_hour):
-            print(f"Processing hour {i}...")
-            ds_pl_time_sliced = ds_pl_sliced.isel(time=i)
-            ds_sfc_time_sliced = ds_sfc_sliced.isel(time=i)
+        for hour in range(start_hour, end_hour):
+            print(f"Processing hour {hour}:00...")
+            ds_pl_time_sliced = ds_pl_sliced.isel(time=hour)
+            ds_sfc_time_sliced = ds_sfc_sliced.isel(time=hour)
 
-            pv_300, pv_925 = get_pv(ds_pl_time_sliced, level=300), get_pv(ds_pl_time_sliced, level=925)
+            # Process variables
+            pv_300, pv_700, pv_850, pv_925, pv_1000 = get_pv(ds_pl_time_sliced, level=300), get_pv(ds_pl_time_sliced, level=700), get_pv(ds_pl_time_sliced, level=850), get_pv(ds_pl_time_sliced, level=925), get_pv(ds_pl_time_sliced, level=1000)
             wnd_300, wnd_500, wnd_850 = get_wnd(ds_pl_time_sliced, level=300), get_wnd(ds_pl_time_sliced, level=500), get_wnd(ds_pl_time_sliced, level=850)
-            z_250, z_500, z_850 = get_geopotential_height(ds_pl_time_sliced, level=250), get_geopotential_height(ds_pl_time_sliced, level=500), get_geopotential_height(ds_pl_time_sliced, level=850)
+            z_250, z_500, z_850, z_925, z_1000 = get_geopotential_height(ds_pl_time_sliced, level=250), get_geopotential_height(ds_pl_time_sliced, level=500), get_geopotential_height(ds_pl_time_sliced, level=850), get_geopotential_height(ds_pl_time_sliced, level=925), get_geopotential_height(ds_pl_time_sliced, level=1000)
             t_250, t_500, t_850, t_925, t_1000 = get_temperature(ds_pl_time_sliced, level=250), get_temperature(ds_pl_time_sliced, level=500), get_temperature(ds_pl_time_sliced, level=850), get_temperature(ds_pl_time_sliced, level=925), get_temperature(ds_pl_time_sliced, level=1000)
             q_850, q_925, q_1000 = get_specific_humidity(ds_pl_time_sliced, level=850), get_specific_humidity(ds_pl_time_sliced, level=925), get_specific_humidity(ds_pl_time_sliced, level=1000)
             ivt = get_ivt(ds_pl_time_sliced, g=g)
             thickness_1000_500 = get_thickness(ds_pl_time_sliced, level1=1000, level2=500)
             qvec_div, qvec_magn = get_qvec(ds_pl_time_sliced, g=g)
             abs_vort = get_absolute_vorticity(ds_pl_time_sliced, level=500, g=g)
-            thetae_925 = get_thetae(ds_pl_time_sliced, level=925)
-            #grad_thetae_925 = get_temp_grad(thetae_925, var_name='thetae_925')
-            fgen_925 = get_fgen(ds_pl_time_sliced, level=925)
+            thetae_850, thetae_925, thetae_1000 = get_thetae(ds_pl_time_sliced, level=850), get_thetae(ds_pl_time_sliced, level=925), get_thetae(ds_pl_time_sliced, level=1000)
+            fgen_700, fgen_850, fgen_925, fgen_1000 = get_fgen(ds_pl_time_sliced, level=700), get_fgen(ds_pl_time_sliced, level=850), get_fgen(ds_pl_time_sliced, level=925), get_fgen(ds_pl_time_sliced, level=1000)
+            tadv_500, tadv_850, tadv_925, tadv_1000 = get_tadv(ds_pl_time_sliced, level=500), get_tadv(ds_pl_time_sliced, level=850), get_tadv(ds_pl_time_sliced, level=925), get_tadv(ds_pl_time_sliced, level=1000)
+            rel_vort_500, rel_vort_850, rel_vort_925, rel_vort_1000 = get_rel_vort(ds_pl_time_sliced, level=500), get_rel_vort(ds_pl_time_sliced, level=850), get_rel_vort(ds_pl_time_sliced, level=925), get_rel_vort(ds_pl_time_sliced, level=1000)
+            total_deformation_500, total_deformation_850, total_deformation_925, total_deformation_1000 = get_total_deformation(ds_pl_time_sliced, level=500), get_total_deformation(ds_pl_time_sliced, level=850), get_total_deformation(ds_pl_time_sliced, level=925), get_total_deformation(ds_pl_time_sliced, level=1000)
+            shearing_deformation_500, shearing_deformation_850, shearing_deformation_925, shearing_deformation_1000 = get_shearing_deformation(ds_pl_time_sliced, level=500), get_shearing_deformation(ds_pl_time_sliced, level=850), get_shearing_deformation(ds_pl_time_sliced, level=925), get_shearing_deformation(ds_pl_time_sliced, level=1000)
+            stretching_deformation_500, stretching_deformation_850, stretching_deformation_925, stretching_deformation_1000 = get_stretching_deformation(ds_pl_time_sliced, level=500), get_stretching_deformation(ds_pl_time_sliced, level=850), get_stretching_deformation(ds_pl_time_sliced, level=925), get_stretching_deformation(ds_pl_time_sliced, level=1000)
+            thetae_grad_850, thetae_grad_925, thetae_grad_1000 = get_temp_grad(thetae_850, 'thetae_850'), get_temp_grad(thetae_925, 'thetae_925'), get_temp_grad(thetae_1000, 'thetae_1000')
+            t_grad_850, t_grad_925, t_grad_1000 = get_temp_grad(t_850, 't_850'), get_temp_grad(t_925, 't_925'), get_temp_grad(t_1000, 't_1000')
 
+            # Rename variables
             pv_300 = pv_300.rename("pv_300")
             pv_925 = pv_925.rename("pv_925")
             wnd_300 = wnd_300.rename("wnd_300")
@@ -306,28 +382,68 @@ def main():
             abs_vort = abs_vort.rename("abs_vort")
             thetae_925 = thetae_925.rename("thetae_925")
             fgen_925 = fgen_925.rename("fgen_925")
+            pv_700 = pv_700.rename("pv_700")
+            pv_850 = pv_850.rename("pv_850")
+            pv_1000 = pv_1000.rename("pv_1000")
+            z_925 = z_925.rename("z_925")
+            z_1000 = z_1000.rename("z_1000")
+            thetae_850 = thetae_850.rename("thetae_850")
+            thetae_1000 = thetae_1000.rename("thetae_1000")
+            fgen_700 = fgen_700.rename("fgen_700")
+            fgen_850 = fgen_850.rename("fgen_850")
+            fgen_1000 = fgen_1000.rename("fgen_1000")
+            tadv_500 = tadv_500.rename("tadv_500")
+            tadv_850 = tadv_850.rename("tadv_850")
+            tadv_925 = tadv_925.rename("tadv_925")
+            tadv_1000 = tadv_1000.rename("tadv_1000")
+            rel_vort_500 = rel_vort_500.rename("rel_vort_500")
+            rel_vort_850 = rel_vort_850.rename("rel_vort_850")
+            rel_vort_925 = rel_vort_925.rename("rel_vort_925")
+            rel_vort_1000 = rel_vort_1000.rename("rel_vort_1000")
+            total_deformation_500 = total_deformation_500.rename("total_deformation_500")
+            total_deformation_850 = total_deformation_850.rename("total_deformation_850")
+            total_deformation_925 = total_deformation_925.rename("total_deformation_925")
+            total_deformation_1000 = total_deformation_1000.rename("total_deformation_1000")
+            shearing_deformation_500 = shearing_deformation_500.rename("shearing_deformation_500")
+            shearing_deformation_850 = shearing_deformation_850.rename("shearing_deformation_850")
+            shearing_deformation_925 = shearing_deformation_925.rename("shearing_deformation_925")
+            shearing_deformation_1000 = shearing_deformation_1000.rename("shearing_deformation_1000")
+            stretching_deformation_500 = stretching_deformation_500.rename("stretching_deformation_500")
+            stretching_deformation_850 = stretching_deformation_850.rename("stretching_deformation_850")
+            stretching_deformation_925 = stretching_deformation_925.rename("stretching_deformation_925")
+            stretching_deformation_1000 = stretching_deformation_1000.rename("stretching_deformation_1000")
+            thetae_grad_850 = thetae_grad_850.rename("thetae_grad_850")
+            thetae_grad_925 = thetae_grad_925.rename("thetae_grad_925")
+            thetae_grad_1000 = thetae_grad_1000.rename("thetae_grad_1000")
+            t_grad_850 = t_grad_850.rename("t_grad_850")
+            t_grad_925 = t_grad_925.rename("t_grad_925")
+            t_grad_1000 = t_grad_1000.rename("t_grad_1000")
 
+            # Merge datasets
             final_ds = xr.merge([
-                pv_300, pv_925, wnd_300, wnd_500, wnd_850,
-                z_250, z_500, z_850, t_250, t_500, t_850, t_925, t_1000,
-                q_850, q_925, q_1000, ivt, thickness_1000_500,
-                qvec_div, qvec_magn, abs_vort, thetae_925, fgen_925
-            ], compat='override')         
+                pv_300, pv_700, pv_850, pv_925, pv_1000,
+                wnd_300, wnd_500, wnd_850,
+                z_250, z_500, z_850, z_925, z_1000,
+                t_250, t_500, t_850, t_925, t_1000,
+                q_850, q_925, q_1000,
+                ivt, thickness_1000_500,
+                qvec_div, qvec_magn, abs_vort,
+                thetae_850, thetae_925, thetae_1000,
+                fgen_700, fgen_850, fgen_925, fgen_1000,
+                tadv_500, tadv_850, tadv_925, tadv_1000,
+                rel_vort_500, rel_vort_850, rel_vort_925, rel_vort_1000,
+                total_deformation_500, total_deformation_850, total_deformation_925, total_deformation_1000,
+                shearing_deformation_500, shearing_deformation_850, shearing_deformation_925, shearing_deformation_1000,
+                stretching_deformation_500, stretching_deformation_850, stretching_deformation_925, stretching_deformation_1000,
+                thetae_grad_850, thetae_grad_925, thetae_grad_1000,
+                t_grad_850, t_grad_925, t_grad_1000
+            ], compat='override')
 
-            print(final_ds)
-
+            # Extract point data and save to a single CSV
             ds_point = get_point_data(final_ds, lat, lon, buffer)
+            ds_point_time = add_time_dimension(ds_point, year, month, day, hour)
+            save_to_csv(ds_point_time, year, month, day, label, output_file="all_events.csv")
 
-            print(ds_point)
-
-            ds_point_time = add_time_dimension(ds_point, year, month, day, start_hour)
-
-            save_to_csv(ds_point_time, year, month, day)
-
-        if ds_pl is None or ds_sfc is None:
-            print(f"Skipping {year}-{month:02d}-{day:02d} due to missing datasets.")
-            continue
-    
     print("Script is complete!")
 
 if __name__ == '__main__':
