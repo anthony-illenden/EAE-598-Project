@@ -170,6 +170,9 @@ cython_debug/
 # PyPI configuration file
 .pypirc
 
+# Specific CSV file to ignore
+all_events.csv
+
 # CSV files
 *.csv
 
