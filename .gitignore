@@ -178,3 +178,6 @@ all_events.csv
 
 # NetCDF files
 *.nc
+
+# Ignore .bashrc
+.bashrc
