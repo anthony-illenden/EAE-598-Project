@@ -84,6 +84,27 @@ def load_datasets(year, month, start_day, start_hour=0, end_day=None, end_hour=2
         
     return ds_pl, ds_sfc
 
+def load_local_datasets(year, month, day, hour, data_dir="C:/Users/Tony/Documents/GitHub/EAE-598-Project/data/era5"):
+    pl_filename = f"pl_{year:04d}_{month:02d}_{day:02d}_{hour:02d}.nc"
+    pl_path = os.path.join(data_dir, pl_filename)
+
+    sfc_filename = f"sfc_{year:04d}_{month:02d}_{day:02d}_{hour:02d}.nc"
+    sfc_path = os.path.join(data_dir, sfc_filename)
+
+    try:
+        ds_pl = xr.open_dataset(pl_path)
+    except FileNotFoundError:
+        print(f"Missing file: {pl_path}")
+        ds_pl = None
+
+    try:
+        ds_sfc = xr.open_dataset(sfc_path)
+    except FileNotFoundError:
+        print(f"Missing file: {sfc_path}")
+        ds_sfc = None
+
+    return ds_pl, ds_sfc
+
 def slice_dataset_to_domain(ds_pl, ds_sfc, directions):
      ds_pl_sliced = ds_pl.sel(latitude=slice(directions['North'], directions['South']), longitude=slice(directions['West'], directions['East']))
      ds_sfc_sliced = ds_sfc.sel(latitude=slice(directions['North'], directions['South']), longitude=slice(directions['West'], directions['East']))
@@ -269,8 +290,8 @@ def get_point_data(final_ds, lat, lon, buffer):
     # Convert longitude from west to east
     lon_e = 360 - lon 
     ds_area_point = final_ds.sel(latitude=slice(lat + buffer, lat - buffer), longitude=slice(lon_e - buffer, lon_e + buffer))
-    ds_area_point_median = ds_area_point.median(dim=['latitude', 'longitude'])
-    return ds_area_point_median
+    ds_area_point_mean = ds_area_point.mean(dim=['latitude', 'longitude'])
+    return ds_area_point_mean
 
 def add_time_dimension(final_ds, year, month, day, start_hour):
     formatted_time = np.datetime64(pd.to_datetime(f"{year}-{month:02d}-{day:02d} {start_hour:02d}:00"))
@@ -292,6 +313,7 @@ def save_to_csv(ds_point, year, month, day, label, output_file="all_events.csv")
     df.to_csv(output_file, mode='a', header=not file_exists, index=False)
 
 def main():
+    data_mode = "local" # "local" or "download"
     events = [
         {"year": 2017, "month": 2, "start_day": 20, "start_hour": 3, "lat": 39.5, "lon": 130, "label": "MFW"},
         {"year": 2019, "month": 2, "start_day": 13, "start_hour": 17, "lat": 34, "lon": 131, "label": "MFW"},
@@ -326,7 +348,11 @@ def main():
 
         print(f"Processing data for {year}-{month:02d}-{day:02d} from {start_hour}:00 to {end_hour}:00...")
 
-        ds_pl, ds_sfc = load_datasets(year=year, month=month, start_day=day, end_day=day, start_hour=0, end_hour=23)
+        if data_mode == "local":
+            ds_pl, ds_sfc = load_local_datasets(year=year, month=month, day=day, hour=start_hour)
+        else:
+            ds_pl, ds_sfc = load_datasets(year=year, month=month, start_day=day, end_day=day, start_hour=0, end_hour=23)
+
         if ds_pl is None or ds_sfc is None:
             print(f"Skipping {year}-{month:02d}-{day:02d} due to missing datasets.")
             continue
