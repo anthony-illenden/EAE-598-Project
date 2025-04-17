@@ -3,23 +3,89 @@ import xarray as xr
 import metpy.calc as mpcalc
 from metpy.units import units
 
-def get_pv(ds_pl, level): 
+def get_pv(ds_pl, level):
+    """
+    Extract the ERA5 PV variable.
+
+    Parameters
+    ----------
+    ds_pl : xarray.Dataset
+        The pressure level dataset.
+    level : int
+        The pressure level (hPa) to extract the PV variable from.
+    
+    Returns
+    -------
+    xarray.DataArray
+        The PV variable at the specified pressure level.
+
+    """
     pv = ds_pl['PV'].sel(level=level) * 1e-6  # Convert PVU to PV (1 PVU = 1e-6 K m^2/kg/s)
     return pv
 
 def get_thickness(ds_pl, level1, level2):
+    """
+    Calculate the thickness of a layer between two pressure levels.
+
+    Parameters
+    ----------
+    ds_pl : xarray.Dataset
+        The pressure level dataset.
+    level1 : int
+        The lower pressure level (hPa).
+    level2 : int
+        The upper pressure level (hPa).
+    
+    Returns 
+    -------
+    xarray.DataArray
+        The thickness of the layer between the two pressure levels.
+
+    """
     z1 = ds_pl['Z'].sel(level=level1)
     z2 = ds_pl['Z'].sel(level=level2)
     thickness = z2 - z1
     return thickness
 
 def get_wnd(ds_pl, level):
+    """
+    Calculate the wind speed at a specific pressure level.
+    
+    Parameters
+    ----------
+    ds_pl : xarray.Dataset
+        The pressure level dataset.
+    level : int
+        The pressure level (hPa) to calculate the wind speed from.
+    
+    Returns 
+    -------
+    xarray.DataArray
+        The wind speed at the specified pressure level.
+
+    """
     u = ds_pl['U'].sel(level=level)
     v = ds_pl['V'].sel(level=level)
     wnd_speed = np.sqrt(u**2 + v**2)
     return wnd_speed
 
 def get_ivt(ds_pl, g): 
+    """
+    Calculate the Integrated Vapor Transport (IVT) using the u- and v-wind components and specific humidity.
+    
+    Parameters
+    ----------
+    ds_pl : xarray.Dataset
+        The pressure level dataset.
+    g : float
+        The acceleration due to gravity (m/s^2).
+
+    Returns
+    -------
+    xarray.DataArray
+        The IVT magnitude.
+
+    """
     u_sliced = ds_pl['U'].sel(level=slice(500, 1000)) # units: m/s
     v_sliced = ds_pl['V'].sel(level=slice(500, 1000)) # units: m/s
     q_sliced = ds_pl['Q'].sel(level=slice(500, 1000)) # units: kg/kg
@@ -42,6 +108,22 @@ def get_ivt(ds_pl, g):
     return ivt_da
 
 def get_qvec(ds_pl, g):
+    """
+    Calculate the Q-vector divergence and magnitude.
+    
+    Parameters
+    ----------
+    ds_pl : xarray.Dataset
+        The pressure level dataset.
+    g : float
+        The acceleration due to gravity (m/s^2).
+
+    Returns
+    -------
+    xarray.DataArray
+        The Q-vector divergence and magnitude.
+
+    """
     t_sliced = ds_pl['T'].sel(level=slice(500, 700)) # units: K
     u_sliced = ds_pl['U'].sel(level=slice(500, 700)) # units: m/s
     v_sliced = ds_pl['V'].sel(level=slice(500, 700)) # units: m/s
@@ -76,6 +158,24 @@ def get_qvec(ds_pl, g):
     return qvec_div_layer_avg, qvec_magnitude
 
 def get_absolute_vorticity(ds_pl, level, g):
+    """
+    Calculate the absolute vorticity at a specific pressure level.
+    
+    Parameters 
+    ----------
+    ds_pl : xarray.Dataset
+        The pressure level dataset.
+    level : int
+        The specific pressure level (hPa) to calculate the absolute vorticity.
+    g : float
+        The acceleration due to gravity (m/s^2).
+
+    Returns 
+    -------
+    xarray.DataArray
+        The absolute vorticity at the specified pressure level.
+    
+    """
     u_sliced = ds_pl['U'].sel(level=level) # units: m/s
     v_sliced = ds_pl['V'].sel(level=level) # units: m/s
     z_sliced = ds_pl['Z'].sel(level=level) / g # units: m
@@ -89,18 +189,82 @@ def get_absolute_vorticity(ds_pl, level, g):
     return absolute_vorticity
 
 def get_geopotential_height(ds_pl, level):
+    """
+    Calculate the geopotential height at a specific pressure level.
+
+    Parameters
+    ----------
+    ds_pl : xarray.Dataset
+        The pressure level dataset.
+    level : int
+        The specific pressure level (hPa) to calculate the geopotential height.
+    
+    Returns
+    -------
+    xarray.DataArray
+        The geopotential height at the specified pressure level.
+
+    """
     z = ds_pl['Z'].sel(level=level)  # Geopotential height in meters
     return z
 
 def get_temperature(ds_pl, level):
+    """
+    Extract the temperature variable at a specific pressure level.
+    
+    Parameters
+    ----------
+    ds_pl : xarray.Dataset
+        The pressure level dataset.
+    level : int
+        The specific pressure level (hPa) to extract the temperature variable.
+
+    Returns 
+    -------
+    xarray.DataArray
+        The temperature variable at the specified pressure level.
+
+    """
     t = ds_pl['T'].sel(level=level)  # Temperature in Kelvin
     return t
 
 def get_specific_humidity(ds_pl, level):
+    """
+    Extract the specific humidity variable at a specific pressure level.
+    
+    Parameters
+    ----------
+    ds_pl : xarray.Dataset
+        The pressure level dataset.
+    level : int
+        The specific pressure level (hPa) to extract the specific humidity variable.
+
+    Returns
+    -------
+    xarray.DataArray
+        The specific humidity variable at the specified pressure level.
+    
+    """
     q = ds_pl['Q'].sel(level=level)  # Specific humidity in kg/kg
     return q
 
 def get_thetae(ds_pl, level):
+    """
+    Calculate the equivalent potential temperature (theta-e) at a specific pressure level.
+
+    Parameters
+    ----------
+    ds_pl : xarray.Dataset
+        The pressure level dataset.
+    level : int
+        The specific pressure level (hPa) to calculate theta-e.
+    
+    Returns 
+    -------
+    xarray.DataArray
+        The equivalent potential temperature (theta-e) at the specified pressure level.
+    
+    """
     u_sliced = ds_pl['U'].sel(level=level) # units: m/s
     v_sliced = ds_pl['V'].sel(level=level) # units: m/s
     q_sliced = ds_pl['Q'].sel(level=level) # units: kg/kg
@@ -117,6 +281,22 @@ def get_thetae(ds_pl, level):
     return theta_e 
 
 def get_temp_grad(var, var_name):
+    """
+    Calculate the temperature gradient of any given temperature variable.
+    
+    Parameters
+    ----------
+    var : xarray.DataArray
+        The temperature variable to calculate the gradient for.
+    var_name : str
+        The name of the temperature variable.
+    
+    Returns 
+    -------
+    xarray.DataArray
+        The temperature gradient of the specified variable.
+    
+    """
     dT_dx, dT_dy = mpcalc.geospatial_gradient(var)  # units: K/m
     temp_grad = np.sqrt(dT_dx**2 + dT_dy**2) * 1000 * 100  * units.meters / units.kilometers # units: K/100 km
     temp_grad_da = xr.DataArray(temp_grad, dims=['latitude', 'longitude'], coords={'latitude': var['latitude'], 'longitude': var['longitude']})
@@ -124,6 +304,22 @@ def get_temp_grad(var, var_name):
     return temp_grad_da
 
 def get_fgen(ds_pl, level):
+    """
+    Calculate the frontogenesis at a specific pressure level.
+
+    Parameters
+    ----------
+    ds_pl : xarray.Dataset
+        The pressure level dataset.
+    level : int
+        The specific pressure level (hPa) to calculate frontogenesis.
+    
+    Returns 
+    -------
+    xarray.DataArray
+        The frontogenesis at the specified pressure level.
+    
+    """
     u_sliced = ds_pl['U'].sel(level=level) # units: m/s
     v_sliced = ds_pl['V'].sel(level=level) # units: m/s
     t_sliced = ds_pl['T'].sel(level=level) # units: K
@@ -133,6 +329,22 @@ def get_fgen(ds_pl, level):
     return fgen
 
 def get_rel_vort(ds_pl, level):
+    """
+    Calculate the relative vorticity at a specific pressure level.
+    
+    Parameters
+    ----------
+    ds_pl : xarray.Dataset
+        The pressure level dataset.
+    level : int
+        The specific pressure level (hPa) to calculate relative vorticity.
+    
+    Returns 
+    -------
+    xarray.DataArray
+        The relative vorticity at the specified pressure level.
+    
+    """
     u_sliced = ds_pl['U'].sel(level=level) # units: m/s
     v_sliced = ds_pl['V'].sel(level=level) # units: m/s
     lats, lons = u_sliced['latitude'], u_sliced['longitude']
@@ -142,6 +354,22 @@ def get_rel_vort(ds_pl, level):
     return rel_vort
 
 def get_tadv(ds_pl, level):
+    """
+    Calculate the temperature advection at a specific pressure level.
+
+    Parameters 
+    ----------
+    ds_pl : xarray.Dataset
+        The pressure level dataset.
+    level : int
+        The specific pressure level (hPa) to calculate temperature advection.
+    
+    Returns
+    -------
+    xarray.DataArray
+        The temperature advection at the specified pressure level.
+
+    """
     u_sliced = ds_pl['U'].sel(level=level) # units: m/s
     v_sliced = ds_pl['V'].sel(level=level) # units: m/s
     t_sliced = ds_pl['T'].sel(level=level) # units: K
@@ -153,6 +381,22 @@ def get_tadv(ds_pl, level):
     return tadv
 
 def get_total_deformation(ds_pl, level):
+    """
+    Calculate the total deformation at a specific pressure level.
+
+    Parameters
+    ----------
+    ds_pl : xarray.Dataset
+        The pressure level dataset.
+    level : int
+        The specific pressure level (hPa) to calculate total deformation.
+
+    Returns 
+    -------
+    xarray.DataArray
+        The total deformation at the specified pressure level.
+
+    """
     u_sliced = ds_pl['U'].sel(level=level) # units: m/s
     v_sliced = ds_pl['V'].sel(level=level) # units: m/s
     lats, lons = u_sliced['latitude'], u_sliced['longitude']
@@ -162,6 +406,22 @@ def get_total_deformation(ds_pl, level):
     return total_deformation
 
 def get_shearing_deformation(ds_pl, level):
+    """
+    Calculate the shearing deformation at a specific pressure level.
+
+    Parameters
+    ----------
+    ds_pl : xarray.Dataset
+        The pressure level dataset.
+    level : int
+        The specific pressure level (hPa) to calculate shearing deformation.
+    
+    Returns
+    -------
+    xarray.DataArray
+        The shearing deformation at the specified pressure level.
+
+    """
     u_sliced = ds_pl['U'].sel(level=level) # units: m/s
     v_sliced = ds_pl['V'].sel(level=level) # units: m/s
     lats, lons = u_sliced['latitude'], u_sliced['longitude']
@@ -171,6 +431,22 @@ def get_shearing_deformation(ds_pl, level):
     return shearing_deformation
 
 def get_stretching_deformation(ds_pl, level):
+    """
+    Calculate the stretching deformation at a specific pressure level.
+
+    Parameters
+    ----------
+    ds_pl : xarray.Dataset
+        The pressure level dataset.
+    level : int
+        The specific pressure level (hPa) to calculate stretching deformation.
+    
+    Returns
+    -------
+    xarray.DataArray
+        The stretching deformation at the specified pressure level.
+
+    """
     u_sliced = ds_pl['U'].sel(level=level) # units: m/s
     v_sliced = ds_pl['V'].sel(level=level) # units: m/s
     lats, lons = u_sliced['latitude'], u_sliced['longitude']
@@ -180,6 +456,21 @@ def get_stretching_deformation(ds_pl, level):
     return stretching_deformation
 
 def get_ivt_grad(ivt):
+    """
+    Calculate the gradient of the Integrated Vapor Transport (IVT).
+
+    Parameters 
+    ----------
+    ivt : xarray.DataArray
+        The IVT variable to calculate the gradient for.
+    
+    Returns 
+    -------
+    xarray.DataArray
+        The gradient of the IVT variable.
+
+    """
+    # Calculate the IVT gradient
     divt_dx, divt_dy = mpcalc.geospatial_gradient(ivt)  # units: K/m/s / m
     ivt_grad = np.sqrt(divt_dx**2 + divt_dy**2) * 1000  * units.meters / units.kilometers # units: K/m/s / km
     ivt_grad_da = xr.DataArray(ivt_grad, dims=['latitude', 'longitude'], coords={'latitude': ivt['latitude'], 'longitude': ivt['longitude']})
