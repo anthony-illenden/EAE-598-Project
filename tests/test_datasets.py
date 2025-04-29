@@ -52,4 +52,3 @@ def test_load_local_datasets():
     expected_vars_sfc = ['mslp', 'u10', 'v10', 't2m', 'd2m']
     for var in expected_vars_sfc:
         assert var in ds_sfc.variables, f"Variable {var} is missing in surface dataset"
-
