@@ -94,4 +94,3 @@ def test_file_existence(events, data_dir):
 
 if __name__ == "__main__":
     test_file_existence(events, data_dir)
-    print("All files exist!")
