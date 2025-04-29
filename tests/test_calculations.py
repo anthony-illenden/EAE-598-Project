@@ -3,13 +3,25 @@ import os
 import numpy as np
 import xarray as xr
 from numpy.testing import assert_almost_equal
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from pre_processing.old import get_thetae, get_temperature, get_total_deformation, get_ivt, get_geopotential_height
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../pre_processing')))
+from calculations import get_thetae, get_temperature, get_total_deformation, get_ivt, get_geopotential_height
 
 test_data_dir = "data/test/"
 
 def test_get_thetae():
-
+    """
+    Function to test the calculation of equivalent potential temperature (thetae).
+    
+    Parameters
+    ----------
+    None
+    
+    Returns
+    -------
+    None
+        Asserts if the thetae values are calculated correctly and have the expected dimensions.
+    
+    """
     mock_data = xr.Dataset(
         {"Q": (("level", "latitude", "longitude"), np.random.rand(37, 5, 5) * 1e-3),
          "T": (("level", "latitude", "longitude"), np.random.rand(37, 5, 5) * 300)},
@@ -27,7 +39,19 @@ def test_get_thetae():
     assert thetae.shape == (5, 5)
 
 def test_get_temperature():
+    """
+    Function to test the calculation of temperature at a specific pressure level.
+    
+    Parameters
+    ----------
+    None
 
+    Returns
+    -------
+    None
+        Asserts if the temperature values are calculated correctly and have the expected dimensions.
+
+    """
     mock_data = xr.Dataset(
         {"T": (("level", "latitude", "longitude"), np.random.rand(37, 5, 5) * 300)},
         coords={
@@ -45,7 +69,19 @@ def test_get_temperature():
     assert_almost_equal(temperature.values, mock_data["T"].sel(level=level).values)
 
 def test_get_total_deformation():
+    """
+    Function to test the calculation of total deformation.
+    
+    Parameters
+    ----------
+    None
 
+    Returns
+    -------
+    None
+        Asserts if the total deformation values are calculated correctly and have the expected dimensions.
+    
+    """
     mock_data = xr.Dataset(
         {"U": (("latitude", "longitude"), np.random.rand(5, 5)),
          "V": (("latitude", "longitude"), np.random.rand(5, 5))},
@@ -58,7 +94,19 @@ def test_get_total_deformation():
     assert deformation.shape == (5, 5)
 
 def test_get_ivt():
+    """
+    Function to test the calculation of Integrated Vapor Transport (IVT).
 
+    Parameters
+    ----------
+    None
+
+    Returns
+    -------
+    None
+        Asserts if the IVT values are calculated correctly and have the expected dimensions.
+
+    """
     mock_data = xr.Dataset(
         {"U": (("level", "latitude", "longitude"), np.random.rand(37, 5, 5)),
          "V": (("level", "latitude", "longitude"), np.random.rand(37, 5, 5)),
@@ -76,7 +124,19 @@ def test_get_ivt():
     assert ivt.shape == (5, 5)
 
 def test_get_geopotential_height():
+    """
+    Function to test the calculation of geopotential height at a specific pressure level.
 
+    Parameters
+    ----------
+    None
+
+    Returns
+    -------
+    None
+        Asserts if the geopotential height values are calculated correctly and have the expected dimensions.
+
+    """
     mock_data = xr.Dataset(
         {"Z": (("level", "latitude", "longitude"), np.random.rand(37, 5, 5) * 1000)},
         coords={
