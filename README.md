@@ -1,21 +1,164 @@
 # EAE-598-Project
+---
 
-### Title: Identifying Synoptic Patterns of Landfalling Atmospheric River Events with and without Mesoscale Frontal Waves Using Machine Learning. 
+### Title: Applying Machine Learning Techniques to Landfalling Atmospheric River Events with and without Mesoscale Frontal Waves.
 
-### Project Members: Tony Illenden and Hunter Martinez-Buehrer
+#### Project Members: Tony Illenden and Hunter Martinez-Buehrer
+---
+### Geoscience Problem & Background
 
-### Geoscience Problem & Introduction
-Atmospheric rivers (ARs) are long, narrow synoptic-scale features that transport copious amounts of water vapor from the equator to the poles (Zhu and Newell 1998). While ARs are important to the water cycle for many regions across the western United States, they can also bring significant hazards. Their extreme precipitation rates and long durations often lead to excessive runoff and catastrophic floods, causing substantial societal and economic impacts (Neiman et al. 2011; Corringham et al. 2019; Ralph et al. 2019). Mesoscale frontal waves (MFWs) occasionally develop within ARs, enhancing ascent and moisture transport, which can significantly modulate their orientation and landfall location (Neiman et al. 2004, 2011; Martin et al. 2019; Demirdjian et al. 2020; Michaelis et al. 2021). Due to the limited understanding of MFWs, predicting their development and subsequent effects on ARs poses a considerable short- and long-term predictability challenge to forecasters (Hecht et al. 2022). Therefore, the goal of this project is to use machine learning (ML) techniques to identify synoptic patterns linked to AR events with and without MFWs and compare the differences. Ultimately, this will improve forecasters’ ability to recognize these key patterns, leading to more accurate weather forecasts across the western United States.
+Atmospheric rivers (ARs) which are long, narrow bands of water vapor transport that are commonly associated with a low-level jet (LLJ) ahead of a cold front of an extratropical cyclone (ETC) (Zhu and Newell 1998; Ralph and Dettinger 2012; Ralph et al. 2017; Guan and Waliser 2015; Ralph et al. 2018). The existence (or nonexistence) of ARs can greatly impact an area’s hydroclimate (Paltan et al. 2017), especially in areas such as the western U.S. where ARs can produce up to 30% of the region’s total precipitation (Lavers and Villarini 2015). ARs can be beneficial in transporting large amounts of water vapor poleward from the tropics, helping to replenish rivers, lakes, snowpacks, and reservoirs, but can also produce dangerous flooding leading to excessive runoff and landslides (Ralph et al. 2006; Ralph et al. 2012; Nayak and Villarini 2017; Huang et al. 2020).
 
-### Methods: 
+When ARs form, they are in conjunction with other meso- and synoptic scale features, such as extratropical cyclones, their associated fronts, and consequently, mesoscale frontal waves (MFWs) (Michaelis et al. 2021). MFWs, also known simply as frontal waves or diminutive frontal waves, are the result of instability in a low-level potential-vorticity strip or warm band at a front, with possible finite amplitude triggered by upper-level features (Joly et al. 1997; Parker 1998). MFWs have been shown to directly increase durations of ARs, which can be tied to prolonged AR conditions and precipitation upon making landfall (Ralph et al. 2011; Neiman et al. 2016) and can even develop secondary cyclones via increased cyclogenesis (Martin et al. 2019). Increased hazards associated with the presence of a mesoscale frontal wave highlights the importance of forecasting for them, though studies have shown that the development of MFWs are rare, and their development into secondary cyclones is even more so (Marin et al. 2019).
+
+The creation of MWFs is influenced by two primary processes: shear along an existing frontal zone (i.e., baroclinic and barotropic instability (Joly and Thrope 1990) and latent heat release (Ludwig et al. 2015; Schemm and Sprenger 2015). In the case of the latter, Michaelis et al. (2021) showed that the lack of latent heat release removed or significantly weakened the MFW, and diminished MWF-AR relationships. Though the creation of MFWs are rare and often missed due to the larger modeling of domain, they are hard to forecast even when the processes are present for creation.
+
+With the need for better understanding and identification of MFW, the goal of this project to see if a method of identifying the creation of a MWF can be used using machine learning (ML). The use of machine learning in meteorology has seen an increase over recent years, as Fig. 1 shows (Chase et al. 2022; their Fig. 1), though Chase et al. 2022 also noted that ML models are viewed as “black boxes”, there users may understand the inputs and outputs of the model, but don’t understand the interworking of said model, and may lead to distrust in the model. However, with a growing number of published meteorological studies using ML methods, it is increasingly important for meteorologists to be well versed in ML (Chase et al. 2022).
+
+To look further into helping forecast mesoscale frontal waves, as well as look to better utilize ML, we look to answer the following question, which to our knowledge has not been done in literature
+1.	Can we train a ML model, using a random forest classifier, to detect the formation of MWFs using initial conditions present prior to their creation?
+
+Our hypothesis is that a ML learning model, with a great number of defined variables and large training dataset, could be able to predict the formation of MFWs after being trained on detecting their formation, though with a smaller dataset, statistics such as precision, recall, and accuracy will be lower. 
+
+### Data & Methods: 
+
+For our dataset, we use the European Center for Medium-Range Weather Forecasts’ (ECMWF) fifth generation model reanalysis, ERA5 (Hersbach et al. 2020). This model reanalysis features a number of useful variables including temperature, moisture, wind speed and direction, and potential vorticity, at the surface and 37 pressure-levels. We will use those variables to calculate additional parameters commonly associated with baroclinic instability, barotropic instability, and latent-heat release, such as equivalent potential temperature, frontogenesis, and shearing and stretching deformation, which are key processes in the development of MFWs in ARs. In total, over 50 variables will be assessed to capture these processes. For a full list of these variables please refer to Table 1.  
+
+The analysis focuses on 50 landfalling AR events from a subjective dataset, which was generously provided by our colleagues at Portland State University (PSU), and the Coastal Landfalling AR Catalog from the Center for Western Weather and Water Extremes' (CW3E). The PSU dataset covers water years (WY) 2009-2019 and classifies AR events into three categories: Ncyc (no MFW, no secondary cyclone), NDcyc (MFW, no secondary cyclone), and Scyc (MFW, secondary cyclone). The CW3E AR Catalog includes events associated with strong, category 2 ARs between 1 January 1959 and 10 October 2024.  From these datasets, we selected 25 AR-MFW events and 25 AR-noMFW events. We specifically focused on the synoptic and mesoscale characteristics at the location where the MFW formed, approximately one hour prior to its formation, or one hour prior to when an MFW appeared likely to form but did not. For the AR-noMFW events, we selected a location along the cold front, which is where all the frontal waves formed in the 25 AR-MFW events. We then apply a 0.25-degree buffer in both longitude and latitude around the point of interest for each event, creating a larger domain that better represents the surrounding environment than a single point location (Figure 3). Finally, we calculate the mean of all the variables in this larger domain and exported them to a CSV file for machine learning.  
+
+We apply K-means clustering to classify AR events (e.g., frontal wave or no frontal wave) based on the underlying synoptic and mesoscale conditions. We use the elbow method and silhouette scores to determine the optimal number of clusters. We then assess the clustering accuracy by comparing the resulting cluster labels with the known event classifications. We repeat this clustering procedure four more times with the following configurations: one, normalize the variables; two, normalize the top 10 most important features; three, use the top 5 most frequent highest-performing Random Forest variables and normalize the data; and four, use the top 15 most frequent highest-performing Random Forest variables and normalize the data. It is important to note that the final two configurations may introduce supervised bias into the clustering, specifically because the Random Forest model is supervised while K-means clustering is unsupervised. Nevertheless, this iterative approach allows us to evaluate how different inputs and strategies may impact the accuracy of K-means clustering. 
+
+To identify the most optimal configuration for the random forest model, we evaluated numerous hyperparameter combinations across three-variable combinations selected from a list of the following features: pv_925, ivt, z_1000, tadv_925, and rel_vort_1000. For each combination, we tested a range of values for the number of trees (n_estimators) from 50 to 1000, maximum depth of trees (max_depth) from 0 to 40, minimum number of samples required to split an internal node (min_samples_split) from 2 to 100, and minimum number of samples to require a leaf node (min_samples_leaf) from 1 to 20. For each configuration, we trained the Random Forest model with the training subset and evaluated it with the validate subset, and measured its performance with basic metrics like accuracy, precision, recall, and F1-score. After looping over all possible combinations, we found that the most common best-performing model configuration featured 100 n_estimators, no max_depth, 2 min_samples_splot, and 1 min_samples_leaf. 
+
+To determine the most effective three-variable combinations for the most accurate Random Forest model, we developed a Python script (rf_model_testing.py) that tested all possible three-variable combinations—totaling over 38,000 unique combinations. For each combination, a Random Forest classifier was trained using the training subset and evaluated with the testing dataset. Similar to the model configuration testing, we measured the performance of the Random Forest classifier using basic metrics such as accuracy, precision, recall, and F1-score. The results were ranked by overall performance, which was derived from a weighted average of the key metrics. The top-50 highest-performing variable combinations, along with their respective performance metrics, were saved to a CSV file for further analysis. 
+
+<details open>
+<summary><strong> Click to Collapse Table 1</strong></summary>
+
+<br>
+
+| **Variable**               | **Description**                                      | **Pressure Level (hPa)**        |
+|---------------------------|------------------------------------------------------|----------------------------------|
+| `pv`                      | Potential Vorticity                                  | 300, 700, 850, 925, 1000         |
+| `z`                       | Geopotential Height                                  | 300, 500, 850, 925, 1000         |
+| `t`                       | Temperature                                          | 250, 500, 850, 925, 1000         |
+| `q`                       | Specific Humidity                                    | 850, 925, 1000                   |
+| `wnd`                     | Wind Speed                                           | 300, 500, 850                    |
+| `ivt`                     | Integrated Water Vapor Transport                     | 1000–500                         |
+| `thickness_1000_500`      | Thickness                                            | 1000–500                         |
+| `qvec_div`                | Q-Vector Divergence                                  | 700–500                          |
+| `qvec_magn`               | Q-Vector Magnitude                                   | 700–500                          |
+| `abs_vort`                | Absolute Vorticity                                   | 500                              |
+| `thetae`                  | Equivalent Potential Temperature                     | 850, 925, 1000                   |
+| `fgen`                    | Petterssen’s 2D Kinematic Frontogenesis              | 700, 850, 925, 1000              |
+| `tadv`                    | Temperature Advection                                | 500, 850, 925, 1000              |
+| `rel_vort`                | Relative Vorticity                                   | 500, 850, 925, 1000              |
+| `shearing_deformation`    | Shearing Deformation                                 | 500, 850, 925, 1000              |
+| `stretching_deformation`  | Stretching Deformation                               | 500, 850, 925, 1000              |
+| `total_deformation`       | Total Deformation                                    | 500, 850, 925, 1000              |
+| `t_grad`                  | Temperature Gradient                                 | 850, 925, 1000                   |
+| `thetae_grad`             | Equivalent Potential Temperature Gradient            | 850, 925, 1000                   |
+| `ivt_grad`                | Integrated Water Vapor Transport Gradient            | 1000–500                         |
+
+</details>
+*Table 1. List of variables used in the analysis.*
+
+<details open>
+<summary><strong> Click to Collapse Table 2</strong></summary>
+<br>
+
+| **Event Type** | **Date (YYYY-MM-DD)** | **Time (UTC)** | **Lat (°N)** | **Lon (°W)** |
+|----------------|------------------------|----------------|--------------|--------------|
+| noMFW          | 2005-01-18             | 11:00          | 44.0         | 138.0        |
+| MFW            | 2005-03-26             | 09:00          | 35.0         | 138.5        |
+| noMFW          | 2008-01-03             | 10:00          | 40.0         | 130.0        |
+| noMFW          | 2008-02-23             | 00:00          | 35.0         | 140.0        |
+| MFW            | 2006-11-04             | 07:00          | 45.0         | 135.0        |
+| MFW            | 2010-01-20             | 06:00          | 38.0         | 130.0        |
+| noMFW          | 2010-02-04             | 18:00          | 35.0         | 128.0        |
+| noMFW          | 2010-02-26             | 03:00          | 35.0         | 131.0        |
+| noMFW          | 2010-03-12             | 00:00          | 40.0         | 132.0        |
+| MFW            | 2011-11-22             | 14:00          | 40.0         | 135.0        |
+| MFW            | 2012-10-18             | 09:00          | 45.0         | 141.0        |
+| noMFW          | 2012-03-09             | 04:00          | 44.0         | 131.0        |
+| noMFW          | 2012-11-19             | 19:00          | 41.0         | 129.0        |
+| noMFW          | 2013-11-11             | 17:00          | 36.0         | 132.0        |
+| noMFW          | 2014-04-16             | 14:00          | 41.0         | 148.0        |
+| MFW            | 2014-02-07             | 13:00          | 40.0         | 134.0        |
+| noMFW          | 2014-11-03             | 10:00          | 39.0         | 145.0        |
+| noMFW          | 2014-11-21             | 08:00          | 42.5         | 140.0        |
+| MFW            | 2014-12-10             | 21:00          | 36.0         | 138.0        |
+| MFW            | 2015-08-27             | 23:00          | 32.0         | 140.0        |
+| MFW            | 2015-11-19             | 02:00          | 45.5         | 131.0        |
+| noMFW          | 2015-02-06             | 00:00          | 37.5         | 130.0        |
+| noMFW          | 2015-03-25             | 06:00          | 35.0         | 146.0        |
+| MFW            | 2016-01-28             | 17:00          | 41.0         | 141.0        |
+| noMFW          | 2016-01-17             | 09:00          | 35.0         | 130.0        |
+| noMFW          | 2016-11-07             | 11:00          | 36.0         | 138.0        |
+| noMFW          | 2016-11-14             | 06:00          | 42.0         | 130.0        |
+| MFW            | 2017-02-06             | 02:00          | 26.0         | 156.5        |
+| MFW            | 2017-02-20             | 03:00          | 39.5         | 130.0        |
+| MFW            | 2017-03-17             | 06:00          | 39.0         | 138.0        |
+| noMFW          | 2017-03-28             | 18:00          | 40.0         | 140.0        |
+| MFW            | 2017-11-15             | 06:00          | 35.0         | 135.0        |
+| MFW            | 2017-11-19             | 03:00          | 38.0         | 142.5        |
+| MFW            | 2017-12-28             | 00:00          | 30.0         | 148.0        |
+| MFW            | 2018-02-13             | 02:00          | 40.0         | 145.0        |
+| noMFW          | 2018-01-23             | 09:00          | 40.0         | 135.0        |
+| noMFW          | 2018-11-22             | 11:00          | 40.0         | 132.0        |
+| noMFW          | 2019-02-02             | 01:00          | 31.5         | 127.0        |
+| MFW            | 2019-02-13             | 17:00          | 34.0         | 131.0        |
+| noMFW          | 2020-11-14             | 21:00          | 45.0         | 128.0        |
+| noMFW          | 2021-10-24             | 02:00          | 40.0         | 135.0        |
+| MFW            | 2021-12-18             | 13:00          | 40.0         | 139.0        |
+| noMFW          | 2022-06-10             | 21:00          | 39.0         | 135.0        |
+| MFW            | 2022-12-30             | 20:00          | 40.0         | 127.0        |
+| MFW            | 2023-01-09             | 12:00          | 31.0         | 130.0        |
+| MFW            | 2023-01-14             | 19:00          | 36.0         | 153.5        |
+| noMFW          | 2023-07-23             | 06:00          | 45.0         | 150.0        |
+| MFW            | 2024-12-28             | 18:00          | 39.0         | 132.0        |
+
+</details>
+*Table 2. List of AR events used in the analysis. Events are classified as "MFW" or "noMFW" based on whether a Mesoscale Frontal Wave was detected.*
 
 ### Results: 
+##### Initial Results:
+Figure 3 shows the distribution of event typer per water year (October 1st – September 30th) within the PSU dataset. Most of the years within the catalog contained more noMFW events than MFW events, leading to a disproportionate number of the events in the dataset being nonMFW events (Fig. 4). This limitation within the PSU dataset led to us incorporating data from CW3E’s dataset to fill out AR events that contained MFWs. 
+
+##### Final Results: 
+To first analyze the data using k-means clustering, five different variations are used; clustering without scaling, clustering with scaling, clustering with the top variables and scaling, clustering with only the top five variables that were successful in a random forest model, and clustering with the top fifteen variables that were successful in the random forest model. The optimal number of clusters in the data set is determined using the elbow method, and the quality of those clusters compared to the global mean is used using the silhouette method. The first clustering without scaling did not perform well in separating MFWs and noMFWs (Fig. 5).
+
+When applying scaling to the clusters, the elbow method presented more promise in terms of the number of optimal clusters that can be used, though a much poorer silhouette score showed that clustering configuration is not appropriate with scaling. This is also prevalent when we look at the cluster label comparison for the second cluster (Fig. 6), as there is less uniformity and seperature between MFW and noMWF events between the clusters, which reflects the results found from the silhouette score. 
+
+The third kmeans clustering variation also used scaling like the second variation, but this time only used the top features of the dataset. The results of this variation showed improved results compared to the first two variations, as clear separation between noMFW and MFW events are seen in cluster 1 (n =13) and cluster 3 (n=12) respectively (Fig. 7). Though when isolating the top variables and seeing how they contribute to the global mean, no clear trend is seen with cluster 1 or cluster 3 on one definitive variable that can identify an event type (Fig 8). Though cluster 2 shows high than average deformation, frontogenesis, and relative vorticity as an identifiable trend. A list of the top variables can be found in Table 2. 
+
+With an idea on what variables may be more important in terms of identifying events (Table 2), the fourth variation of k-means clustering is used only the top 5 variables used in the random forest model, which were: shearing_deformation_925, IVT, total_deformation_850, t_grad_850, and tadv_925. When using these five variables as a basis, elbow and silhouette scores reflected that of the second k-means variation method that utilized scaling, where clusters 0 and 1 were able to differentiate MFW and noMFW events at 57% and 88%, respectively (Fig 9).  Thus, the variation of clustering using only the top 5 variables does not provide a good picture on event type separation, though this may be due to a lack of variables being utilized, leading to our fifth variation of k-means clustering to test that theory.
+
+As alluded to previously, the fifth and final variation of k-means clustering used incorporates more variables into the clusters, with this time the top 15 variables used. In addition to the first 5 mentioned previous, the following variables are also taken into account: q_850, z_1000, z_250, tadv_500, pv_300, pv_850, pv_925, pv_1000, and wnd_850. In this variation, more clear clusters are seen than those in the top 5. In this clustering, clusters 0 and 3 are notably bad at separating MFW and noMFW events, while clusters 1 and 2 are much better. Cluster 1 had 60% MFWs with 15 total events and cluster 2 had 80% noMFWs with 5 total events.
+
+Among the 38,000 unique variable combinations, seven achieved perfect classification performance by the Random Forest model. All of these combinations commonly featured variables such as IVT, low- and upper-tropospheric PV, and low-tropospheric thermodynamic measures, including temperature, temperature advection, and temperature gradient. Several other variable combinations also produced robust performance across all metrics, including those featuring shearing deformation and total deformation, in addition to the previously mentioned variables above. This can be seen in Figure #, which displays the frequency of these key variables in the highest-performing models. 
+
+One unique variable combination that yielded a perfect classification performance by the Random Forest model consisted of 850-hPa temperature (t_850), IVT, and 850-hPa temperature gradient (t_grad_850). The decision tree of the Random Forest revealed that the model first prioritized the 850-hPa temperature, with an initial split of 285.15 K. This was followed by a second split based on IVT, with a threshold of 906.188 kg/m/s. Finally, the last split was the 850-hPa temperature gradient, with a value of 1.976 K / 100 km. Partial dependence plots of these variables demonstrated that 850-hPa temperatures lower than 280 K were associated with a predicted MFW probability of approximately 60-65%, whereas temperatures above 280 K significantly reduced the predicted probability to 25%. IVT values greater than 900 kg/m/s increased the predicted probability to 55-60%, compared to 25-45% for the lower IVT values. For the 850-hPa temperature gradient, the predicted probability peaked at 60% between 1.5 to 2.5 K / 100 km, while values outside this range corresponded to lower predicted probabilities, with some as low as 35%. 
 
 ### Discussion: 
+Among the top-performing variable combinations, the Random Forest model consistently performed the best with variables relevant to MFW development, including lower-tropospheric deformation, potential vorticity, and thermodynamic measures such as temperature, temperature advection, and temperature gradient, as well as IVT. These variables align with the findings from previous studies that highlight the roles of barotropic instability and latent heat release in the formation of MFWs (Bishop and Thorpe 1994a,b; Dacre and Gray 2006; Hewson 2009; Ludwig et al. 2015; Schemm and Sprenger 2015; Martin et al. 2019; Demirdjian et al. 2020; Michaelis et al. 2021). In addition, several baroclinic variables were prominent in top-performing combinations, which we hypothesize that be a result of a few of our MFWs that further developed into secondary cyclones—a process that is driven by baroclinic instability (Dacre and Gray 2006). While future research is needed to test this hypothesis, these results support the idea that MFWs tend to develop within barotropically unstable environments with sufficient latent heat release and may undergo further intensification in the presence of baroclinic instability. 
 
-### Conclusion: 
+The partial dependence plots highlight several characteristics associated with AR-MFW events. First, colder 850-hPa temperatures were associated with higher predicted probabilities, suggesting that colder lower-tropospheric conditions are more favorable for frontal wave development than warmer lower-tropospheric conditions. This relationship is somewhat unexpected and contrasts with previous studies that show stronger ARs tend to exhibit warmer lower-tropospheric conditions (e.g., Ralph et al. 2019; Bartlett and Corderia 2021). However, given that MFWs are more likely to occur in stronger AR events, we hypothesize that this observed relationship likely reflects the sampling of the colder side of the AR—the focus of this study—rather than the warmer side located in the warm conveyor. Second, the model’s tendency to assign higher predicted probabilities with increased amounts of IVT matches well with the positive feedback mechanism as outlined in Demirdjian et al. (2020). Lastly, for the 850-hPa temperature gradient, it appears that there may be a Goldilocks zone for the predicted probabilities, where the cold front needs to be strong, but not too strong in order for frontal waves to develop.  
+
+### Summary and Conclusion: 
+In summary, atmospheric rivers (ARs) are long, narrow synoptic-scale features that transports copious amounts of water vapor from the equator to the poles. While ARs are important to the water cycle for many regions across the western United States, they can also bring significant hazards. Their extreme precipitation rates and long durations often lead to excessive runoff and catastrophic flooding, causing substantial societal and economic impacts. Mesoscale frontal waves (MFWs), also known as diminutive waves, occasionally develop within ARs, enhancing the ascent and moisture transport. Moreover, these waves can significantly modulate the intensity, duration, and landfall location of ARs. Due to the limited understanding of MFWs, predicting their development and subsequent effects on ARs poses a considerable short- and long-term predictability challenge to forecasters. 
+
+In this study, we examine the approximate formation locations of MFWs along cold fronts in 50 landfalling AR events across the western United States, spanning water years 2004-2024. Using ERA5 reanalysis data, we compare AR events with and without MFWs. For the events without MFWs, we analyze regions where MF development appears likely based on synoptic and mesoscale conditions. Key features considered include a secondary IVT maximum upstream of the landfall AR, an IVT cusp, a pronounced low-level equivalent potential temperature gradient, and high low-level potential vorticity (a proxy for latent heating). We apply a couple machine learning techniques—specifically k-means clustering and Random Forest models—to identify key variables that differentiate AR events with MFWs from those without. 
+
+The Random Forest models performed exceptionally well with variables relevant to MFW development like lower-tropospheric deformation, potential vorticity, and thermodynamic measures such as temperature, temperature advection, and temperature gradient, as well as integrated water vapor transport (IVT). These variables are associated with processes such as barotropic instability and latent heat release, which previous studies identify as the primary forcing mechanisms for MFW development—and this project corroborates those findings (Bishop and Thorpe 1994a,b; Dacre and Gray 2006; Hewson 2009; Ludwig et al. 2015; Schemm and Sprenger 2015; Martin et al. 2019; Demirdjian et al. 2020; Michaelis et al. 2021). We also observed several baroclinic instability variables among the highest-performing Random Forest models, CONTINUE 
+
+This study is the first to examine differences in the synoptic and mesoscale environment of AR events with and without MFWs. While the results offer valuable initial insights, further research is needed to build upon these findings. This includes increasing the number of AR events, incorporating additional variables, and applying more advanced unsupervised techniques, such as self-organizing maps. 
 
 ### Acknowledgements
+First, we would like to thank our advisor, Dr. Allison Michaelis, for their guidance throughout this project and our in-depth discussions about the results. Second, we would like to thank our colleagues, Joe Riedl and Dr. Paul Loikith at Portland State University, who provided us with their subjective AR event dataset. Third, we would like to thank Dr. Jay Corderia at the Center for Western Weather and Water Extremes (CW3E), Scripps Institution of Oceanography, University of San Diego, for their Coastal Landfalling AR Catalog. 
+
+### Data Availability
+ERA5 reanalysis data was downloaded through the University Corporation for Atmospheric Research’s (UCAR) THREDDS Data Server: https://rda.ucar.edu/datasets/d633000/dataaccess/. Instructions to view and download the specific surface (sfc) and pressure level (pl) datasets used for each event, along with a CSV summary for all events, are listed in the following markdown file in our GitHub repository: https://github.com/anthony-illenden/EAE-598-Project/blob/main/data/data_availability.md. 
 
 ### References: 
 - Badrinath, A., L. D. Monache, N. Hayatbini, W. Chapman, F. Cannon, and M. Ralph, 2023: Improving Precipitation Forecasts with Convolutional Neural Networks. https://doi.org/10.1175/WAF-D-22-0002.1.
@@ -31,3 +174,195 @@ Atmospheric rivers (ARs) are long, narrow synoptic-scale features that transport
 - Osborne, A. P., J. Zhang, M. J. Simpson, K. W. Howard, and S. B. Cocks, 2023: Application of Machine Learning Techniques to Improve Multi-Radar Multi-Sensor (MRMS) Precipitation Estimates in the Western United States. https://doi.org/10.1175/AIES-D-22-0053.1.
 - Ralph, F. M., J. J. Rutz, J. M. Cordeira, M. Dettinger, M. Anderson, D. Reynolds, L. J. Schick, and C. Smallcomb, 2019: A Scale to Characterize the Strength and Impacts of Atmospheric Rivers. https://doi.org/10.1175/BAMS-D-18-0023.1.
 - Zhu, Y., and R. E. Newell, 1998: A Proposed Algorithm for Moisture Fluxes from Atmospheric Rivers.
+
+
+### Requirements 
+WX-01 | AR Events with and without MFWs
+--------|-----------------
+Priority | High
+Sprint | 1
+Assigned To | Tony
+User Story | Determine which AR events—with and without MFWs—to use.
+
+Requirements | |
+1. Gather 10-20 years of AR-MFW events. |
+2. Catalog and confirm the events with a test. |
+
+Acceptance Criteria | |
+1. 10-20 years of AR-MFW events gathered and cataloged. |
+2. Events confirmed with a test. |
+
+Unit Test | |
+N/A
+
+---
+
+WX-02 | Determine Variables within our dataset
+--------|-----------------
+Priority | High
+Sprint | 1
+Assigned To | Tony / Hunter
+User Story | Determine which variables to analyze using ERA5 data.
+
+Requirements | |
+1. Identify variables such as integrated water vapor transport, mean sea-level pressure, equivalent potential temperature, frontogenesis, and quasi-geostrophic forcing. |
+2. Ensure variables are present in the dataset. |
+
+Acceptance Criteria | |
+1. Variables approved by our advisor, Allison. |
+2. Variables confirmed in the file with a test. |
+
+Unit Test | |
+N/A
+
+---
+
+WX-03 | Download ERA5 data
+--------|-----------------
+Priority | High
+Sprint | 1
+Assigned To | Hunter
+User Story | Download ERA5 data from the ECMWF’s Copernicus Climate Change Service Climate Data Store API or the National Center for Atmospheric Research’s D633000 THREDDS Data Server.
+
+Requirements | |
+1. Access ERA5 data from the specified sources. |
+2. Test the data using a script. |
+
+Acceptance Criteria | |
+1. Plug into a script Tony has made with Xarray to test the ERA5 data. |
+
+Unit Test | |
+N/A
+
+---
+
+WX-04 | Pre-process ERA5 data
+--------|-----------------
+Priority | High
+Sprint | 2
+Assigned To | Tony
+User Story | Pre-process ERA5 data so that it is ready to be used to train the model.
+
+Requirements | |
+1. Write a script to pre-process ERA5 data. |
+2. Ensure data is ready for model training. |
+
+Acceptance Criteria | |
+1. Script confirms data is pre-processed correctly for the model. |
+
+Unit Test | |
+N/A
+
+---
+
+WX-05 | Train AI Model
+--------|-----------------
+Priority | High
+Sprint | 2
+Assigned To | Tony / Hunter
+User Story | Train the AI model with the pre-processed ERA5 data.
+
+Requirements | |
+1. Train the AI model using pre-processed data. |
+2. Test the model's ability to identify synoptic patterns. |
+
+Acceptance Criteria | |
+1. Model identifies synoptic patterns of AR events with and without MFWs. |
+
+Unit Test | |
+N/A
+
+---
+
+WX-06 | Post-Process ML data
+--------|-----------------
+Priority | High
+Sprint | 2
+Assigned To | Tony / Hunter
+User Story | Post-process the ML data.
+
+Requirements | |
+1. Post-process the ML data. |
+2. Ensure model accuracy meets expectations. |
+
+Acceptance Criteria | |
+1. Model accuracy of 50-60%. |
+
+Unit Test | |
+N/A
+
+---
+
+WX-07 | Analyze the ML post-processed data
+--------|-----------------
+Priority | High
+Sprint | 2
+Assigned To | Tony / Hunter
+User Story | Analyze the ML post-processed data and compare the AR events with MFWs to the AR events without MFWs.
+
+Requirements | |
+1. Write a script to analyze the ML post-processed data. |
+2. Compare AR events with and without MFWs. |
+
+Acceptance Criteria | |
+1. Script confirms data was processed correctly. |
+
+Unit Test | |
+N/A
+
+---
+
+WX-08 | Analyze potential fixes to ML techniques
+--------|-----------------
+Priority | High
+Sprint | 3
+Assigned To | Tony / Hunter
+User Story | Look at the post-processed machine-learned detection system analysis of MFWs and identify weak points.
+
+Requirements | |
+1. Identify weak points in the detection system. |
+2. Test for errors in the machine learning process. |
+
+Acceptance Criteria | |
+1. Errors identified and documented. |
+
+Unit Test | |
+N/A
+
+---
+
+WX-09 | Apply fixes and retrain AI model
+--------|-----------------
+Priority | High
+Sprint | 3
+Assigned To | Tony / Hunter
+User Story | Address potential issues and retrain the model with corrections.
+
+Requirements | |
+1. Apply fixes to the model. |
+2. Retrain the model with corrections. |
+
+Acceptance Criteria | |
+1. Model passes the same test as the initial test. |
+
+Unit Test | |
+N/A
+
+---
+
+WX-10 | Post Process retrained ML data
+--------|-----------------
+Priority | High
+Sprint | 3
+Assigned To | Tony / Hunter
+User Story | Post-process the retrained ML data.
+
+Requirements | |
+1. Post-process the retrained ML data. |
+2. Ensure model accuracy improves. |
+
+Acceptance Criteria | |
+1. Model accuracy of 60-65%. |
+
+Unit Test | |
+N/A
