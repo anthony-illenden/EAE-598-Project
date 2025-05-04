@@ -176,24 +176,16 @@ ERA5 reanalysis data was downloaded through the University Corporation for Atmos
 - Zhu, Y., and R. E. Newell, 1998: A Proposed Algorithm for Moisture Fluxes from Atmospheric Rivers.
 
 
-### Requirements 
-WX-01 | AR Events with and without MFWs
+### Requirements
+ Requirements | |
+WX-01 | Identify AR Events with and without MFWs
 --------|-----------------
 Priority | High
 Sprint | 1
 Assigned To | Tony
-User Story | Determine which AR events—with and without MFWs—to use.
-
-Requirements | |
-1. Gather 10-20 years of AR-MFW events. |
-2. Catalog and confirm the events with a test. |
-
-Acceptance Criteria | |
-1. 10-20 years of AR-MFW events gathered and cataloged. |
-2. Events confirmed with a test. |
-
-Unit Test | |
-N/A
+Description | Determine which AR events—with and without MFWs—to use.
+Acceptance Criteria | At least 10-20 years of AR-MFW events gathered and cataloged.
+Unit Test | N/A
 
 ---
 
@@ -202,18 +194,9 @@ WX-02 | Determine Variables within our dataset
 Priority | High
 Sprint | 1
 Assigned To | Tony / Hunter
-User Story | Determine which variables to analyze using ERA5 data.
-
-Requirements | |
-1. Identify variables such as integrated water vapor transport, mean sea-level pressure, equivalent potential temperature, frontogenesis, and quasi-geostrophic forcing. |
-2. Ensure variables are present in the dataset. |
-
-Acceptance Criteria | |
-1. Variables approved by our advisor, Allison. |
-2. Variables confirmed in the file with a test. |
-
-Unit Test | |
-N/A
+Description | Determine which variables to analyze using ERA5 data, such as integrated water vapor transport, mean sea-level pressure, equivalent potential temperature, frontogenesis, and quasi-geostrophic forcing.
+Acceptance Criteria | Our advisor, Allison, said these are good variables to use for our project. Make sure the variables are present in the file with a test.
+Unit Test | N/A
 
 ---
 
@@ -222,147 +205,254 @@ WX-03 | Download ERA5 data
 Priority | High
 Sprint | 1
 Assigned To | Hunter
-User Story | Download ERA5 data from the ECMWF’s Copernicus Climate Change Service Climate Data Store API or the National Center for Atmospheric Research’s D633000 THREDDS Data Server.
+Description | Download ERA5 data for surface and pressure level from the ECMWF’s Copernicus Climate Change Service Climate Data Store API or the National Center for Atmospheric Research’s D633000 THREDDS Data Server.
+Acceptance Criteria | All files exist.
+Unit Test | See test_files.py or below
+```
+def test_file_existence(events, data_dir):
+    """
+    Test if the required files exist in the specified directory.
+    
+    Parameters
+    ----------
+    events : list of dict
+        List of events with year, month, start_day, and start_hour.
+    data_dir : str
+        Directory where the files are located.
+    
+    Returns
+    -------
+    None
+        Asserts if the files do not exist.
 
-Requirements | |
-1. Access ERA5 data from the specified sources. |
-2. Test the data using a script. |
+    """
 
-Acceptance Criteria | |
-1. Plug into a script Tony has made with Xarray to test the ERA5 data. |
+    missing_files = []
 
-Unit Test | |
-N/A
+    for event in events:
+        year = event["year"]
+        month = f"{event['month']:02d}"
+        day = f"{event['start_day']:02d}"
+        hour = f"{event['start_hour']:02d}"
+
+        pl_file = f"pl_{year}_{month}_{day}_{hour}.nc"
+        sfc_file = f"sfc_{year}_{month}_{day}_{hour}.nc"
+
+        if not os.path.exists(os.path.join(data_dir, pl_file)):
+            missing_files.append(pl_file)
+        if not os.path.exists(os.path.join(data_dir, sfc_file)):
+            missing_files.append(sfc_file)
+
+    assert not missing_files, f"Missing files: {missing_files}"
+```
 
 ---
 
-WX-04 | Pre-process ERA5 data
+WX-04 | Calculate Barotropic Variables
+--------|-----------------
+Priority | High
+Sprint | 1
+Assigned To | Tony
+Description | Calculate deformation and vorticity variables.
+Acceptance Criteria | Use ERA5 variables to calculate these variables.
+Unit Test | See test_calculations.py or below
+```
+def test_get_total_deformation():
+    """
+    Function to test the calculation of total deformation.
+    
+    Parameters
+    ----------
+    None
+
+    Returns
+    -------
+    None
+        Asserts if the total deformation values are calculated correctly and have the expected dimensions.
+    
+    """
+    mock_data = xr.Dataset(
+        {"U": (("latitude", "longitude"), np.random.rand(5, 5)),
+         "V": (("latitude", "longitude"), np.random.rand(5, 5))},
+        coords={
+            "latitude": np.linspace(-90, 90, 5),
+            "longitude": np.linspace(0, 360, 5)})
+
+    deformation = get_total_deformation(mock_data)
+    assert deformation is not None
+    assert deformation.shape == (5, 5)
+```
+
+---
+
+WX-05 | Calculate Baroclinic Variables
+--------|-----------------
+Priority | High
+Sprint | 1
+Assigned To | Tony
+Description | Calculate temperature and moisture gradients in the low- and upper-levels.
+Acceptance Criteria | Use ERA5 variables to calculate these variables.
+Unit Test | See test_calculations.py or below
+```
+def test_get_thetae():
+    """
+    Function to test the calculation of equivalent potential temperature (thetae).
+    
+    Parameters
+    ----------
+    None
+    
+    Returns
+    -------
+    None
+        Asserts if the thetae values are calculated correctly and have the expected dimensions.
+    
+    """
+    mock_data = xr.Dataset(
+        {"Q": (("level", "latitude", "longitude"), np.random.rand(37, 5, 5) * 1e-3),
+         "T": (("level", "latitude", "longitude"), np.random.rand(37, 5, 5) * 300)},
+        coords={
+            "level": np.array([1., 2., 3., 5., 7., 10., 20., 30., 50., 70.,
+                               100., 125., 150., 175., 200., 225., 250., 300., 350., 400.,
+                               450., 500., 550., 600., 650., 700., 750., 775., 800., 825.,
+                               850., 875., 900., 925., 950., 975., 1000.]),
+            "latitude": np.linspace(-90, 90, 5),
+            "longitude": np.linspace(0, 360, 5)})
+
+    level = 925 # units: hPa
+    thetae = get_thetae(mock_data, level)
+    assert thetae is not None
+    assert thetae.shape == (5, 5)
+```
+
+---
+
+WX-06 | Extract Potential Vorticity Variables
+--------|-----------------
+Priority | High
+Sprint | 1
+Assigned To | Tony
+Description | Extract ERA5 Potential Vorticity.
+Acceptance Criteria | Use ERA5 variables to calculate these variables.
+Unit Test | See test_calculations.py or below
+```
+def test_get_pv():
+    """
+    Function to test the calculation of potential vorticity (PV) at a specific pressure level.
+
+    Parameters
+    ----------
+    None
+
+    Returns
+    -------
+    None
+        Asserts if the PV values are calculated correctly and have the expected dimensions.
+
+    """
+    mock_data = xr.Dataset(
+        {"PV": (("level", "latitude", "longitude"), np.random.rand(37, 5, 5) * 1e-6)},
+        coords={
+            "level": np.array([1., 2., 3., 5., 7., 10., 20., 30., 50., 70.,
+                               100., 125., 150., 175., 200., 225., 250., 300., 350., 400.,
+                               450., 500., 550., 600., 650., 700., 750., 775., 800., 825.,
+                               850., 875., 900., 925., 950., 975., 1000.]),
+            "latitude": np.linspace(-90, 90, 5),
+            "longitude": np.linspace(0, 360, 5)})
+
+    level = 500  # units: hPa
+    pv = get_pv(mock_data, level)
+    assert pv is not None
+    assert pv.shape == (5, 5)
+    assert_almost_equal(pv.values, mock_data["PV"].sel(level=level).values)
+```
+---
+
+WX-07 | Pre-process ERA5 data
 --------|-----------------
 Priority | High
 Sprint | 2
 Assigned To | Tony
-User Story | Pre-process ERA5 data so that it is ready to be used to train the model.
+Description | Pre-process ERA5 data so that it is ready to be used to train the model.
+Acceptance Criteria | Write a script that determines if the data is pre-processed correctly for the model.
+Unit Test | See test_datasets.py or below
+```
+def test_load_local_datasets():
+    """
+    Function to test the loading of local datasets.
+    
+    Parameters
+    ----------
+    None
 
-Requirements | |
-1. Write a script to pre-process ERA5 data. |
-2. Ensure data is ready for model training. |
+    Returns
+    -------
+    None
+        Asserts if the datasets are loaded correctly and have the expected dimensions and variables.
 
-Acceptance Criteria | |
-1. Script confirms data is pre-processed correctly for the model. |
+    """
 
-Unit Test | |
-N/A
+    year, month, day, hour = 2025, 4, 14, 0
+    data_dir = "C:\\Users\\Tony\\Documents\\GitHub\\EAE-598-Project\\data\\era5"
 
+    ds_pl, ds_sfc = load_local_datasets(year, month, day, hour, data_dir=data_dir)
+
+    expected_dims_pl = {'time': 1, 'level': 37, 'latitude': 141, 'longitude': 201}
+    for dim, expected_size in expected_dims_pl.items():
+        result = ds_pl.dims[dim]
+        assert result == expected_size, f"Pressure level dataset: Expected {dim} size {expected_size}, got {result}"
+
+    expected_levels = np.array([1., 2., 3., 5., 7., 10., 20., 30., 50., 70.,
+                                 100., 125., 150., 175., 200., 225., 250., 300., 350., 400.,
+                                 450., 500., 550., 600., 650., 700., 750., 775., 800., 825.,
+                                 850., 875., 900., 925., 950., 975., 1000.])
+    assert 'level' in ds_pl.coords, "Pressure level dataset is missing 'level' coordinate"
+    assert len(ds_pl.coords['level']) == 37, f"Expected 37 levels, got {len(ds_pl.coords['level'])}"
+    assert np.allclose(ds_pl.coords['level'].values, expected_levels), \
+        f"Pressure level dataset levels do not match expected values"
+
+    expected_dims_sfc = {'time': 1, 'latitude': 141, 'longitude': 201}
+    for dim, expected_size in expected_dims_sfc.items():
+        result = ds_sfc.dims[dim]
+        assert result == expected_size, f"Surface dataset: Expected {dim} size {expected_size}, got {result}"
+
+    expected_vars_pl = ['Z', 'T', 'Q', 'V', 'U', 'W', 'PV']
+    for var in expected_vars_pl:
+        assert var in ds_pl.variables, f"Variable {var} is missing in pressure level dataset"
+
+    expected_vars_sfc = ['mslp', 'u10', 'v10', 't2m', 'd2m']
+    for var in expected_vars_sfc:
+        assert var in ds_sfc.variables, f"Variable {var} is missing in surface dataset"
+```
 ---
 
-WX-05 | Train AI Model
+WX-08 | Train AI Model
 --------|-----------------
 Priority | High
 Sprint | 2
 Assigned To | Tony / Hunter
-User Story | Train the AI model with the pre-processed ERA5 data.
-
-Requirements | |
-1. Train the AI model using pre-processed data. |
-2. Test the model's ability to identify synoptic patterns. |
-
-Acceptance Criteria | |
-1. Model identifies synoptic patterns of AR events with and without MFWs. |
-
-Unit Test | |
-N/A
+Description | Train the AI model with the pre-processed ERA5 data.
+Acceptance Criteria | The model can test the given variables and identify synoptic patterns of AR events with and without MFWs.
+Unit Test | N/A
 
 ---
 
-WX-06 | Post-Process ML data
+WX-09 | Post-Process ML data
 --------|-----------------
 Priority | High
 Sprint | 2
 Assigned To | Tony / Hunter
-User Story | Post-process the ML data.
-
-Requirements | |
-1. Post-process the ML data. |
-2. Ensure model accuracy meets expectations. |
-
-Acceptance Criteria | |
-1. Model accuracy of 50-60%. |
-
-Unit Test | |
-N/A
+Description | Post-process the ML data.
+Acceptance Criteria | Model accuracy of 50-60%.
+Unit Test | N/A
 
 ---
 
-WX-07 | Analyze the ML post-processed data
---------|-----------------
-Priority | High
-Sprint | 2
-Assigned To | Tony / Hunter
-User Story | Analyze the ML post-processed data and compare the AR events with MFWs to the AR events without MFWs.
-
-Requirements | |
-1. Write a script to analyze the ML post-processed data. |
-2. Compare AR events with and without MFWs. |
-
-Acceptance Criteria | |
-1. Script confirms data was processed correctly. |
-
-Unit Test | |
-N/A
-
----
-
-WX-08 | Analyze potential fixes to ML techniques
+WX-10 | Apply fixes and retrain AI model
 --------|-----------------
 Priority | High
 Sprint | 3
 Assigned To | Tony / Hunter
-User Story | Look at the post-processed machine-learned detection system analysis of MFWs and identify weak points.
-
-Requirements | |
-1. Identify weak points in the detection system. |
-2. Test for errors in the machine learning process. |
-
-Acceptance Criteria | |
-1. Errors identified and documented. |
-
-Unit Test | |
-N/A
-
----
-
-WX-09 | Apply fixes and retrain AI model
---------|-----------------
-Priority | High
-Sprint | 3
-Assigned To | Tony / Hunter
-User Story | Address potential issues and retrain the model with corrections.
-
-Requirements | |
-1. Apply fixes to the model. |
-2. Retrain the model with corrections. |
-
-Acceptance Criteria | |
-1. Model passes the same test as the initial test. |
-
-Unit Test | |
-N/A
-
----
-
-WX-10 | Post Process retrained ML data
---------|-----------------
-Priority | High
-Sprint | 3
-Assigned To | Tony / Hunter
-User Story | Post-process the retrained ML data.
-
-Requirements | |
-1. Post-process the retrained ML data. |
-2. Ensure model accuracy improves. |
-
-Acceptance Criteria | |
-1. Model accuracy of 60-65%. |
-
-Unit Test | |
-N/A
+Description | Address any potential issues and retrain the model with those corrections/fixes.
+Acceptance Criteria | Same test as first test in the UI.
+Unit Test | N/A
