@@ -43,6 +43,7 @@ To look further into helping forecast mesoscale frontal waves, as well as look t
 
 Our hypothesis is that a ML learning model, with a great number of defined variables and large training dataset, could be able to predict the formation of MFWs after being trained on detecting their formation, though with a smaller dataset, statistics such as precision, recall, and accuracy will be lower. 
 
+---
 ### Data & Methods: 
 
 For our dataset, we use the European Center for Medium-Range Weather Forecasts’ (ECMWF) fifth generation model reanalysis, ERA5 (Hersbach et al. 2020). This model reanalysis features a number of useful variables including temperature, moisture, wind speed and direction, and potential vorticity, at the surface and 37 pressure-levels. We will use those variables to calculate additional parameters commonly associated with baroclinic instability, barotropic instability, and latent-heat release, such as equivalent potential temperature, frontogenesis, and shearing and stretching deformation, which are key processes in the development of MFWs in ARs. In total, over 50 variables will be assessed to capture these processes. For a full list of these variables please refer to Table 1.  
@@ -149,6 +150,7 @@ To identify the most optimal configuration for the random forest model, we evalu
 
 To determine the most effective three-variable combinations for the most accurate Random Forest model, we developed a Python script (rf_model_testing.py) that tested all possible three-variable combinations—totaling over 38,000 unique combinations. For each combination, a Random Forest classifier was trained using the training subset and evaluated with the testing dataset. Similar to the model configuration testing, we measured the performance of the Random Forest classifier using basic metrics such as accuracy, precision, recall, and F1-score. The results were ranked by overall performance, which was derived from a weighted average of the key metrics. The top-50 highest-performing variable combinations, along with their respective performance metrics, were saved to a CSV file for further analysis. 
 
+---
 ### Results: 
 ##### Initial Results:
 Figure 3 shows the distribution of event typer per water year (October 1st – September 30th) within the PSU dataset. Most of the years within the catalog contained more noMFW events than MFW events, leading to a disproportionate number of the events in the dataset being nonMFW events (Fig. 4). This limitation within the PSU dataset led to us incorporating data from CW3E’s dataset to fill out AR events that contained MFWs. 
@@ -170,32 +172,37 @@ When applying scaling to the clusters, the elbow method presented more promise i
 ![second_kmeans](images/figure_6_kmeans_second_clustering.png)
 > Figure 6. A comparison of cluster labels between MFWs and noMWFs without scaling. 
 
-The third kmeans clustering variation also used scaling like the second variation, but this time only used the top features of the dataset. The results of this variation showed improved results compared to the first two variations, as clear separation between noMFW and MFW events are seen in cluster 1 (n =13) and cluster 3 (n=12) respectively (Fig. 7). Though when isolating the top variables and seeing how they contribute to the global mean, no clear trend is seen with cluster 1 or cluster 3 on one definitive variable that can identify an event type (Fig 8). Though cluster 2 shows high than average deformation, frontogenesis, and relative vorticity as an identifiable trend. A list of the top variables can be found in Table 2.
+The third k-means clustering significantly improved the separation between MFW and noMFW events compared to previous clustering attempts (Figure 7). Cluster 0 was relatively balanced, consisting of 55% MFW and 45% noMFW events across 22 events. Cluster 1 was dominated by noMFW events, with 77% of its 13 events falling into that label. Cluster 2 was very small with a sample size of 3 events but had a 66% noMFW split. Lastly, cluster 3 primarily composed of MFW events, with 75% of its 12 cases labeled as such. 
 
 ![third_kmeans](images/figure_7_kmeans_third_clustering.png)
 > Figure 7. A comparison of cluster labels between MFWs and noMWFs with scaling using only the top features.
 
-With an idea on what variables may be more important in terms of identifying events (Table 2), the fourth variation of k-means clustering is used only the top 5 variables used in the random forest model, which were: shearing_deformation_925, IVT, total_deformation_850, t_grad_850, and tadv_925. When using these five variables as a basis, elbow and silhouette scores reflected that of the second k-means variation method that utilized scaling, where clusters 0 and 1 were able to differentiate MFW and noMFW events at 57% and 88%, respectively (Fig 8).  Thus, the variation of clustering using only the top 5 variables does not provide a good picture on event type separation, though this may be due to a lack of variables being utilized, leading to our fifth variation of k-means clustering to test that theory.
+Compared to the global mean, cluster 0 closely followed the mean, though there were a few variables—deformation, frontogenesis, relative vorticity, and mid-/upper-tropospheric wind speeds—that were below the average. Cluster 1 had lower than average temperature advection and stretching deformation, and higher than average shearing deformation, frontogenesis, and mid-/upper-tropospheric wind speeds. Cluster 2 was quite sensitive to its smaller sample size of 3 events exhibited higher than average low-tropospheric shearing and total deformation, frontogenesis, and relative vorticity, and lower than average low-tropospheric temperature advection. Like cluster 0, cluster 3 followed the global mean rather closely, with the exception of low-tropospheric temperature advection, which was higher than normal, and low-tropospheric deformation and frontogenesis, which were lower than normal.  
 
-![fourth_kmeans](images/figure_8_kmeans_fourth_clustering.png)
-> Figure 8. A comparison of cluster labels between MFWs and noMWFs with scaling using only the top features.
+![third_kmeans_global_mean](images/figure_8_kmeans_third_clustering_global_mean.png)
+> Figure 8. A comparison of importance features between the global mean and k-means clusters. 
 
-As alluded to previously, the fifth and final variation of k-means clustering used incorporates more variables into the clusters, with this time the top 15 variables used. In addition to the first 5 mentioned previous, the following variables are also taken into account: q_850, z_1000, z_250, tadv_500, pv_300, pv_850, pv_925, pv_1000, and wnd_850. In this variation, more clear clusters are seen than those in the top 5 (Figure 9). In this clustering, clusters 0 and 3 are notably bad at separating MFW and noMFW events, while clusters 1 and 2 are much better. Cluster 1 had 60% MFWs with 15 total events and cluster 2 had 80% noMFWs with 5 total events.
+With an idea on what variables may be more important in terms of identifying events (Table 2), the fourth variation of k-means clustering is used only the top 5 variables used in the random forest model, which were: shearing_deformation_925, IVT, total_deformation_850, t_grad_850, and tadv_925. When using these five variables as a basis, elbow and silhouette scores reflected that of the second k-means variation method that utilized scaling, where clusters 0 and 1 were able to differentiate MFW and noMFW events at 57% and 88%, respectively (Figure 9).  Thus, the variation of clustering using only the top 5 variables does not provide a good picture on event type separation, though this may be due to a lack of variables being utilized, leading to our fifth variation of k-means clustering to test that theory.
 
-![fifth_kmeans](images/figure_9_kmeans_fifth_clustering.png)
+![fourth_kmeans](images/figure_9_kmeans_fourth_clustering.png)
 > Figure 9. A comparison of cluster labels between MFWs and noMWFs with scaling using only the top features.
 
-To investigate the synoptic and mesoscale characteristics of the k-means clusters, we compared the fifth clustering—the one with the top-15 highest-performing variables in the Random Forest model—to the global mean for all clusters (Figure 10). Cluster 1 had the highest percentage of MFW events (60%) with the second largest sample size (n=15). The majority of the features in this cluster were approximately the same as the global mean; however, there were some above the global mean and some below the global mean. Those above the global mean feature lower-tropospheric potential vorticity (925-850 hPa), temperature advection (925 hPa), temperature gradient (850 hPa), and geopotential height (1000 hPa). Those below the global mean were upper-tropospheric potential vorticity (300 hPa) and IVT. Cluster 2 had the highest percentage of noMFW events (80%), albeit with the smallest sample size of 5 events. Nonetheless, this cluster notably had higher than average lower-tropospheric deformation (925-850 hPa), temperature advection (925 hPa), temperature gradient (850 hPa), potential vorticity (925-850 hPa), and wind speed (850 hPa). The other clusters were unable to separate MFW and noMFW events, so those were neglected. 
+As alluded to previously, the fifth and final variation of k-means clustering used incorporates more variables into the clusters, with this time the top 15 variables used. In addition to the first 5 mentioned previous, the following variables are also taken into account: q_850, z_1000, z_250, tadv_500, pv_300, pv_850, pv_925, pv_1000, and wnd_850. In this variation, more clear clusters are seen than those in the top 5 (Figure 10). In this clustering, clusters 0 and 3 are notably bad at separating MFW and noMFW events, while clusters 1 and 2 are much better. Cluster 1 had 60% MFWs with 15 total events and cluster 2 had 80% noMFWs with 5 total events.
 
-![fifth_kmeans_global_mean](images/figure_10_kmeans_fifth_clustering_global_mean.png)
-> Figure 10. A comparison of importance features between the global mean and k-means clusters. 
+![fifth_kmeans](images/figure_10_kmeans_fifth_clustering.png)
+> Figure 10. A comparison of cluster labels between MFWs and noMWFs with scaling using only the top features.
 
-Among the 38,000 unique variable combinations, seven achieved perfect classification performance by the Random Forest model. All of these combinations commonly featured variables such as IVT, low- and upper-tropospheric PV, and low-tropospheric thermodynamic measures, including temperature, temperature advection, and temperature gradient. Several other variable combinations also produced robust performance across all metrics, including those featuring shearing deformation and total deformation, in addition to the previously mentioned variables above. This can be seen in Figure 11, which displays the frequency of these key variables in the highest-performing models. 
+To investigate the synoptic and mesoscale characteristics of the k-means clusters, we compared the fifth clustering—the one with the top-15 highest-performing variables in the Random Forest model—to the global mean for all clusters (Figure 11). Cluster 1 had the highest percentage of MFW events (60%) with the second largest sample size (n=15). The majority of the features in this cluster were approximately the same as the global mean; however, there were some above the global mean and some below the global mean. Those above the global mean feature lower-tropospheric potential vorticity (925-850 hPa), temperature advection (925 hPa), temperature gradient (850 hPa), and geopotential height (1000 hPa). Those below the global mean were upper-tropospheric potential vorticity (300 hPa) and IVT. Cluster 2 had the highest percentage of noMFW events (80%), albeit with the smallest sample size of 5 events. Nonetheless, this cluster notably had higher than average lower-tropospheric deformation (925-850 hPa), temperature advection (925 hPa), temperature gradient (850 hPa), potential vorticity (925-850 hPa), and wind speed (850 hPa). The other clusters were unable to separate MFW and noMFW events, so those were neglected. 
 
-![rf_variables](images/figure_11_rf_variable_combinations.png)
-> Figure 11. Frequency of individual variables appearances within three-variable combinations among the top left) top 10 variable combinations, top right) top 15 variable combinations, bottom left) top 25 variable combinations, and bottom right) top 50 variable combinations.
+![fifth_kmeans_global_mean](images/figure_11_kmeans_fifth_clustering_global_mean.png)
+> Figure 11. A comparison of importance features between the global mean and k-means clusters. 
 
-One unique variable combination that yielded a perfect classification performance by the Random Forest model consisted of 850-hPa temperature (t_850), IVT, and 850-hPa temperature gradient (t_grad_850). The decision tree of the Random Forest (Figure 12) revealed that the model first prioritized the 850-hPa temperature, with an initial split of 285.15 K. This was followed by a second split based on IVT, with a threshold of 906.188 kg/m/s. Finally, the last split was the 850-hPa temperature gradient, with a value of 1.976 K / 100 km. 
+Among the 38,000 unique variable combinations, seven achieved perfect classification performance by the Random Forest model. All of these combinations commonly featured variables such as IVT, low- and upper-tropospheric PV, and low-tropospheric thermodynamic measures, including temperature, temperature advection, and temperature gradient. Several other variable combinations also produced robust performance across all metrics, including those featuring shearing deformation and total deformation, in addition to the previously mentioned variables above. This can be seen in Figure 12, which displays the frequency of these key variables in the highest-performing models. 
+
+![rf_variables](images/figure_12_rf_variable_combinations.png)
+> Figure 12. Frequency of individual variables appearances within three-variable combinations among the top left) top 10 variable combinations, top right) top 15 variable combinations, bottom left) top 25 variable combinations, and bottom right) top 50 variable combinations.
+
+One unique variable combination that yielded a perfect classification performance by the Random Forest model consisted of 850-hPa temperature (t_850), IVT, and 850-hPa temperature gradient (t_grad_850). The decision tree of the Random Forest (Figure 13) revealed that the model first prioritized the 850-hPa temperature, with an initial split of 285.15 K. This was followed by a second split based on IVT, with a threshold of 906.188 kg/m/s. Finally, the last split was the 850-hPa temperature gradient, with a value of 1.976 K / 100 km. 
 
 | Metric       | **Precision** | **Recall** | **F1-Score** | **Support** |
 |--------------|---------------|------------|--------------|-------------|
@@ -206,19 +213,21 @@ One unique variable combination that yielded a perfect classification performanc
 | **Weighted Avg** | 1.00      | 1.00       | 1.00         | 10          |
 > Table 3. Random Forest classification report for 850-hPa temperature (t_850), IVT, and 850-hPa temperature gradient (t_grad_850) with a random state of 1895595. For more information refer to rf_model_testing.ipynb. 
 
-![rf_tree](images/figure_12_rf_decision_tree.png)
-> Figure 12. Decision tree for the Random Forest model using 850-hPa temperature (t_850), IVT, and 850-hPa temperature gradient (t_grad_850).
+![rf_tree](images/figure_13_rf_decision_tree.png)
+> Figure 13. Decision tree for the Random Forest model using 850-hPa temperature (t_850), IVT, and 850-hPa temperature gradient (t_grad_850).
 
-Partial dependence plots (Figure 13) of these variables demonstrated that 850-hPa temperatures lower than 280 K were associated with a predicted MFW probability of approximately 60-65%, whereas temperatures above 280 K significantly reduced the predicted probability to 25%. IVT values greater than 900 kg/m/s increased the predicted probability to 55-60%, compared to 25-45% for the lower IVT values. For the 850-hPa temperature gradient, the predicted probability peaked at 60% between 1.5 to 2.5 K / 100 km, while values outside this range corresponded to lower predicted probabilities, with some as low as 35%. 
+Partial dependence plots (Figure 14) of these variables demonstrated that 850-hPa temperatures lower than 280 K were associated with a predicted MFW probability of approximately 60-65%, whereas temperatures above 280 K significantly reduced the predicted probability to 25%. IVT values greater than 900 kg/m/s increased the predicted probability to 55-60%, compared to 25-45% for the lower IVT values. For the 850-hPa temperature gradient, the predicted probability peaked at 60% between 1.5 to 2.5 K / 100 km, while values outside this range corresponded to lower predicted probabilities, with some as low as 35%. 
 
-![rf_pd](images/figure_13_rf_partial_dependence.png)
-> Figure 13. Partial dependence for the Random Forest model using 850-hPa temperature (t_850), IVT, and 850-hPa temperature gradient (t_grad_850).
+![rf_pd](images/figure_14_rf_partial_dependence.png)
+> Figure 14. Partial dependence for the Random Forest model using 850-hPa temperature (t_850), IVT, and 850-hPa temperature gradient (t_grad_850).
 
+---
 ### Discussion: 
 Among the top-performing variable combinations, the Random Forest model consistently performed the best with variables relevant to MFW development, including lower-tropospheric deformation, potential vorticity, and thermodynamic measures such as temperature, temperature advection, and temperature gradient, as well as IVT. These variables align with the findings from previous studies that highlight the roles of barotropic instability and latent heat release in the formation of MFWs (Bishop and Thorpe 1994a,b; Dacre and Gray 2006; Hewson 2009; Ludwig et al. 2015; Schemm and Sprenger 2015; Martin et al. 2019; Demirdjian et al. 2020; Michaelis et al. 2021). In addition, several baroclinic variables were prominent in top-performing combinations, which we hypothesize that be a result of a few of our MFWs that further developed into secondary cyclones—a process that is driven by baroclinic instability (Dacre and Gray 2006). While future research is needed to test this hypothesis, these results support the idea that MFWs tend to develop within barotropically unstable environments with sufficient latent heat release and may undergo further intensification in the presence of baroclinic instability. 
 
 The partial dependence plots highlight several characteristics associated with AR-MFW events. First, colder 850-hPa temperatures were associated with higher predicted probabilities, suggesting that colder lower-tropospheric conditions are more favorable for frontal wave development than warmer lower-tropospheric conditions. This relationship is somewhat unexpected and contrasts with previous studies that show stronger ARs tend to exhibit warmer lower-tropospheric conditions (e.g., Ralph et al. 2019; Bartlett and Corderia 2021). However, given that MFWs are more likely to occur in stronger AR events, we hypothesize that this observed relationship likely reflects the sampling of the colder side of the AR—the focus of this study—rather than the warmer side located in the warm conveyor. Second, the model’s tendency to assign higher predicted probabilities with increased amounts of IVT matches well with the positive feedback mechanism as outlined in Demirdjian et al. (2020). Lastly, for the 850-hPa temperature gradient, it appears that there may be a Goldilocks zone for the predicted probabilities, where the cold front needs to be strong, but not too strong in order for frontal waves to develop. While we cannot say this with great certainty, the results may suggest that baroclinic instability is less important for frontal wave development than barotropic instability and latent heat release, particularly given the significant decrease in partial dependence with stronger temperature gradients.  
 
+---
 ### Summary and Conclusion: 
 In summary, atmospheric rivers (ARs) are long, narrow synoptic-scale features that transports copious amounts of water vapor from the equator to the poles. While ARs are important to the water cycle for many regions across the western United States, they can also bring significant hazards. Their extreme precipitation rates and long durations often lead to excessive runoff and catastrophic flooding, causing substantial societal and economic impacts. Mesoscale frontal waves (MFWs), also known as diminutive waves, occasionally develop within ARs, enhancing the ascent and moisture transport. Moreover, these waves can significantly modulate the intensity, duration, and landfall location of ARs. Due to the limited understanding of MFWs, predicting their development and subsequent effects on ARs poses a considerable short- and long-term predictability challenge to forecasters. 
 
@@ -228,12 +237,15 @@ The Random Forest models performed exceptionally well with variables relevant to
 
 This study is the first to examine differences in the synoptic and mesoscale environment of AR events with and without MFWs. While the results offer valuable initial insights, further research is needed to build upon these findings. This includes increasing the number of AR events, incorporating additional variables, and applying more advanced unsupervised techniques, such as self-organizing maps. 
 
+---
 ### Acknowledgements
 First, we would like to thank our advisor, Dr. Allison Michaelis, for their guidance throughout this project and our in-depth discussions about the results. Second, we would like to thank our colleagues, Joe Riedl and Dr. Paul Loikith at Portland State University, who provided us with their subjective AR event dataset. Third, we would like to thank Dr. Jay Corderia at the Center for Western Weather and Water Extremes (CW3E), Scripps Institution of Oceanography, University of San Diego, for their Coastal Landfalling AR Catalog. 
 
+---
 ### Data Availability
 ERA5 reanalysis data was downloaded through the University Corporation for Atmospheric Research’s (UCAR) THREDDS Data Server: https://rda.ucar.edu/datasets/d633000/dataaccess/. Instructions to view and download the specific surface (sfc) and pressure level (pl) datasets used for each event, along with a CSV summary for all events, are listed in the following markdown file in our GitHub repository: https://github.com/anthony-illenden/EAE-598-Project/blob/main/data/data_availability.md. 
 
+---
 ### References: 
 - Bishop, C. H., and A. J. Thorpe, 1994a: Frontal Wave Stability during Moist Deformation Frontogenesis. Part I: Linear Wave Dynamics.
 - ——, and ——, 1994b: Frontal Wave Stability during Moist Deformation Frontogenesis. Part II: The Suppression of Nonlinear Wave Development.
@@ -261,7 +273,7 @@ ERA5 reanalysis data was downloaded through the University Corporation for Atmos
 - Schemm, S., and M. Sprenger, 2015: Frontal-wave cyclogenesis in the North Atlantic—A climatological characterisation. Quart. J. Roy. Meteor. Soc., 141, 2989–3005, https://doi.org/10.1002/qj.2584.
 - Zhu, Y., and R. Newell, 1998: A proposed algorithm for moisture fluxes from atmospheric rivers. Monthly Weather Review, 126(3), 725–735, https://doi.org/10.1175/1520-0493(1998)126<0725:APAFMF>2.0.CO;2.
 
-
+---
 ### Requirements
 WX-01 | Identify AR Events with and without MFWs
 --------|-----------------
