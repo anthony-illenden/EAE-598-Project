@@ -5,6 +5,26 @@
 
 #### Project Members: Tony Illenden and Hunter Martinez-Buehrer
 ---
+### Dependencies
+To run this repository, you will need the following dependencies: 
+  - numpy
+  - pandas
+  - matplotlib
+  - scikit-learn
+  - jupyter
+  - xarray
+  - cartopy
+  - siphon
+  - metpy
+  - scipy
+
+For more information on versions, please refer to the [environment.yml](environment.yml) file.
+
+---
+### Data 
+To run this repository, you will need to download ERA5 netCDF data as well as ERA5 area-averaged CSV data from this public [OneDrive folder](https://niuits-my.sharepoint.com/:f:/g/personal/z1969782_students_niu_edu/Esruustb6jtEuK4M4geS8doBmiDO0sMuesT3wtBhtge6eA?e=sSzDOt).. If you have difficulties accessing the data, please email Tony (aillenden@niu.edu) or Hunter (hmartinezbuehrer1@niu.edu).
+
+---
 ### Geoscience Problem & Background
 
 Atmospheric rivers (ARs) which are long, narrow bands of water vapor transport that are commonly associated with a low-level jet (LLJ) ahead of a cold front of an extratropical cyclone (ETC) (Zhu and Newell 1998; Ralph and Dettinger 2012; Ralph et al. 2017; Guan and Waliser 2015; Ralph et al. 2018). The existence (or nonexistence) of ARs can greatly impact an area’s hydroclimate (Paltan et al. 2017), especially in areas such as the western U.S. where ARs can produce up to 30% of the region’s total precipitation (Lavers and Villarini 2015). ARs can be beneficial in transporting large amounts of water vapor poleward from the tropics, helping to replenish rivers, lakes, snowpacks, and reservoirs, but can also produce dangerous flooding leading to excessive runoff and landslides (Ralph et al. 2006; Ralph et al. 2012; Nayak and Villarini 2017; Huang et al. 2020).
@@ -168,7 +188,7 @@ As alluded to previously, the fifth and final variation of k-means clustering us
 Among the 38,000 unique variable combinations, seven achieved perfect classification performance by the Random Forest model. All of these combinations commonly featured variables such as IVT, low- and upper-tropospheric PV, and low-tropospheric thermodynamic measures, including temperature, temperature advection, and temperature gradient. Several other variable combinations also produced robust performance across all metrics, including those featuring shearing deformation and total deformation, in addition to the previously mentioned variables above. This can be seen in Figure #, which displays the frequency of these key variables in the highest-performing models. 
 
 ![rf_variables](images/figure_11_rf_variable_combinations.png)
-> Figure 11. Insert Caption.
+> Figure 11. Frequency of individual variables appearances within three-variable combinations among the top left) top 10 variable combinations, top right) top 15 variable combinations, bottom left) top 25 variable combinations, and bottom right) top 50 variable combinations.
 
 One unique variable combination that yielded a perfect classification performance by the Random Forest model consisted of 850-hPa temperature (t_850), IVT, and 850-hPa temperature gradient (t_grad_850). The decision tree of the Random Forest revealed that the model first prioritized the 850-hPa temperature, with an initial split of 285.15 K. This was followed by a second split based on IVT, with a threshold of 906.188 kg/m/s. Finally, the last split was the 850-hPa temperature gradient, with a value of 1.976 K / 100 km. Partial dependence plots of these variables demonstrated that 850-hPa temperatures lower than 280 K were associated with a predicted MFW probability of approximately 60-65%, whereas temperatures above 280 K significantly reduced the predicted probability to 25%. IVT values greater than 900 kg/m/s increased the predicted probability to 55-60%, compared to 25-45% for the lower IVT values. For the 850-hPa temperature gradient, the predicted probability peaked at 60% between 1.5 to 2.5 K / 100 km, while values outside this range corresponded to lower predicted probabilities, with some as low as 35%. 
 
