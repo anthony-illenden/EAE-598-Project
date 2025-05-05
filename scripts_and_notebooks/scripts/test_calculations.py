@@ -3,7 +3,7 @@ import os
 import numpy as np
 import xarray as xr
 from numpy.testing import assert_almost_equal
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../pre_processing')))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '.')))
 from calculations import get_total_deformation, get_thetae, get_pv
 
 test_data_dir = "data/test/"

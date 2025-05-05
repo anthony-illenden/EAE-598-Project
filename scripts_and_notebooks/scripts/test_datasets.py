@@ -3,7 +3,7 @@ import os
 import xarray as xr
 import numpy as np
 from numpy.testing import assert_equal
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../pre_processing')))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '.')))
 from data_processing import load_local_datasets
 
 def test_load_local_datasets():
