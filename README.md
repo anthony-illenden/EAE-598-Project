@@ -22,7 +22,10 @@ For more information on versions, please refer to the [environment.yml](environm
 
 ---
 ### Data 
-To run this repository, you will need to download ERA5 netCDF data as well as ERA5 area-averaged CSV data from this public [OneDrive folder](https://niuits-my.sharepoint.com/:f:/g/personal/z1969782_students_niu_edu/Esruustb6jtEuK4M4geS8doBmiDO0sMuesT3wtBhtge6eA?e=sSzDOt). If you have difficulties accessing the data, please email Tony (aillenden@niu.edu) or Hunter (hmartinezbuehrer1@niu.edu).
+To run this repository, you will need to do one of the following: 
+1. **(Suggested Method)** Download the ERA5 netCDF data and area-averaged CSV data (final_all_events.csv) from this public [OneDrive folder](https://niuits-my.sharepoint.com/:f:/g/personal/z1969782_students_niu_edu/Esruustb6jtEuK4M4geS8doBmiDO0sMuesT3wtBhtge6eA?e=sSzDOt). It also contains a CSV of the highest-performing variable combinations for the Random Forest model (top_50_variable_triplets.csv). If you have difficulties accessing the data, please email Tony (aillenden@niu.edu) or Hunter (hmartinezbuehrer1@niu.edu).
+
+2. Download the data yourself and generate the area-averaged CSV data by running [main.py](https://github.com/anthony-illenden/EAE-598-Project/blob/main/scripts_and_notebooks/scripts/main.py), but be sure to change the data_mode to "download". Fair waring—this process will take a long time to run, which is why the first method is the suggested method. 
 
 ---
 ### Geoscience Problem & Background
