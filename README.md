@@ -299,7 +299,7 @@ Priority | High
 Sprint | 1
 Assigned To | Tony / Hunter
 Description | Determine which variables to analyze using ERA5 data, such as integrated water vapor transport, mean sea-level pressure, equivalent potential temperature, frontogenesis, and quasi-geostrophic forcing.
-Acceptance Criteria | Our advisor, Allison, said these are good variables to use for our project. Make sure the variables are present in the file with a test.
+Acceptance Criteria | Get them approved by our advisor, Allison.
 Unit Test | N/A
 
 ---
@@ -310,7 +310,7 @@ Priority | High
 Sprint | 1
 Assigned To | Hunter
 Description | Download ERA5 data for surface and pressure level from the ECMWF’s Copernicus Climate Change Service Climate Data Store API or the National Center for Atmospheric Research’s D633000 THREDDS Data Server.
-Acceptance Criteria | All files exist.
+Acceptance Criteria | All files exist. Test a directory to ensure that the surface and pressure-level netCDF files exist for each event. 
 Unit Test | See test_files.py or below
 ```
 def test_file_existence(events, data_dir):
@@ -358,7 +358,7 @@ Priority | High
 Sprint | 1
 Assigned To | Tony
 Description | Calculate deformation and vorticity variables.
-Acceptance Criteria | Use ERA5 variables to calculate these variables.
+Acceptance Criteria | Use ERA5 variables to calculate these variables. Test the calculation of at least one barotropic-related variable using random values and ensure it has the same lat/lon dimensions. 
 Unit Test | See test_calculations.py or below
 ```
 def test_get_total_deformation():
@@ -395,7 +395,7 @@ Priority | High
 Sprint | 1
 Assigned To | Tony
 Description | Calculate temperature and moisture gradients in the low- and upper-levels.
-Acceptance Criteria | Use ERA5 variables to calculate these variables.
+Acceptance Criteria | Use ERA5 variables to calculate these variables. Test the calculation of at least one barolinic-related variable using random values and ensure it has the same lat/lon dimensions.
 Unit Test | See test_calculations.py or below
 ```
 def test_get_thetae():
@@ -437,7 +437,7 @@ Priority | High
 Sprint | 1
 Assigned To | Tony
 Description | Extract ERA5 Potential Vorticity.
-Acceptance Criteria | Use ERA5 variables to calculate these variables.
+Acceptance Criteria | Extract the ERA5 PV variable. Test the extraction of this variable and ensure it has the same lat/lon dimensions.
 Unit Test | See test_calculations.py or below
 ```
 def test_get_pv():
@@ -478,7 +478,7 @@ Priority | High
 Sprint | 2
 Assigned To | Tony
 Description | Pre-process ERA5 data so that it is ready to be used to train the model.
-Acceptance Criteria | Write a script that determines if the data is pre-processed correctly for the model.
+Acceptance Criteria | Write a script that determines if the data is pre-processed correctly for the model. Ensure that the ERA5 data has the correct dimensions for both surface and pressure level datasets.
 Unit Test | See test_datasets.py or below
 ```
 def test_load_local_datasets():
