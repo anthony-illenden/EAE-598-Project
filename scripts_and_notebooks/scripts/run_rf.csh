@@ -11,4 +11,4 @@
 #SBATCH --mail-user=${SLURM_MAIL_USER}
 #######################################################
 source activate thesis
-srun python rf_model_training.py
+srun python rf_model_testing.py
