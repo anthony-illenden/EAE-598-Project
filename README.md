@@ -25,7 +25,7 @@ For more information on versions, please refer to the [environment.yml](environm
 To run this repository, you will need to do one of the following: 
 1. **(Suggested Method)** Download the ERA5 netCDF data and area-averaged CSV data (final_all_events.csv) from this public [OneDrive folder](https://niuits-my.sharepoint.com/:f:/g/personal/z1969782_students_niu_edu/Esruustb6jtEuK4M4geS8doBmiDO0sMuesT3wtBhtge6eA?e=sSzDOt). It also contains a CSV of the highest-performing variable combinations for the Random Forest model (top_50_variable_triplets.csv). If you have difficulties accessing the data, please email Tony (aillenden@niu.edu) or Hunter (hmartinezbuehrer1@niu.edu).
 
-2. Download the data yourself and generate the area-averaged CSV data by running [main.py](https://github.com/anthony-illenden/EAE-598-Project/blob/main/scripts_and_notebooks/scripts/main.py), but be sure to change the data_mode to "download". Fair waring—this process will take a long time to run, which is why the first method is the suggested method. 
+2. Download the data yourself and generate the area-averaged CSV data by running [main.py](scripts_and_notebooks/scripts/main.py), but be sure to change the data_mode to "download". Fair waring—this process will take a long time to run, which is why the first method is the suggested method. 
 
 ---
 ### Geoscience Problem & Background
@@ -49,7 +49,7 @@ Our hypothesis is that a ML learning model, with a great number of defined varia
 ---
 ### Data & Methods: 
 
-For our dataset, we use the European Center for Medium-Range Weather Forecasts’ (ECMWF) fifth generation model reanalysis, ERA5 (Hersbach et al. 2020). This model reanalysis features a number of useful variables including temperature, moisture, wind speed and direction, and potential vorticity, at the surface and 37 pressure-levels. We will use those variables to calculate additional parameters commonly associated with baroclinic instability, barotropic instability, and latent-heat release, such as equivalent potential temperature, frontogenesis, and shearing and stretching deformation, which are key processes in the development of MFWs in ARs. In total, over 50 variables will be assessed to capture these processes. For a full list of these variables please refer to Table 1.  
+For our dataset, we use the European Center for Medium-Range Weather Forecasts’ (ECMWF) fifth generation model reanalysis, ERA5 (Hersbach et al. 2020). This model reanalysis features a number of useful variables including temperature, moisture, wind speed and direction, and potential vorticity, at the surface and 37 pressure levels. We will use those variables to calculate additional parameters commonly associated with baroclinic instability, barotropic instability, and latent-heat release, such as equivalent potential temperature, frontogenesis, and shearing and stretching deformation, which are key processes in the development of MFWs in ARs. In total, over 50 variables will be assessed to capture these processes. For a full list of these variables please refer to Table 1.  
 
 <details open>
 <summary><strong> Click to Collapse Table 1</strong></summary>
@@ -310,8 +310,8 @@ Priority | High
 Sprint | 1
 Assigned To | Hunter
 Description | Download ERA5 data for surface and pressure level from the ECMWF’s Copernicus Climate Change Service Climate Data Store API or the National Center for Atmospheric Research’s D633000 THREDDS Data Server.
-Acceptance Criteria | All files exist. Test a directory to ensure that the surface and pressure-level netCDF files exist for each event. 
-Unit Test | See test_files.py or below
+Acceptance Criteria | All files exist. Test a directory to ensure that the surface and pressure level netCDF files exist for each event. 
+Unit Test | See [test_files.py](scripts_and_notebooks/scripts/test_files.py) or below.
 ```
 def test_file_existence(events, data_dir):
     """
@@ -359,7 +359,7 @@ Sprint | 1
 Assigned To | Tony
 Description | Calculate deformation and vorticity variables.
 Acceptance Criteria | Use ERA5 variables to calculate these variables. Test the calculation of at least one barotropic-related variable using random values and ensure it has the same lat/lon dimensions. 
-Unit Test | See test_calculations.py or below
+Unit Test | See [test_calculations.py](scripts_and_notebooks/scripts/test_calculations.py) or below.
 ```
 def test_get_total_deformation():
     """
@@ -396,7 +396,7 @@ Sprint | 1
 Assigned To | Tony
 Description | Calculate temperature and moisture gradients in the low- and upper-levels.
 Acceptance Criteria | Use ERA5 variables to calculate these variables. Test the calculation of at least one barolinic-related variable using random values and ensure it has the same lat/lon dimensions.
-Unit Test | See test_calculations.py or below
+Unit Test | See [test_calculations.py](scripts_and_notebooks/scripts/test_calculations.py) or below.
 ```
 def test_get_thetae():
     """
@@ -438,7 +438,7 @@ Sprint | 1
 Assigned To | Tony
 Description | Extract ERA5 Potential Vorticity.
 Acceptance Criteria | Extract the ERA5 PV variable. Test the extraction of this variable and ensure it has the same lat/lon dimensions.
-Unit Test | See test_calculations.py or below
+Unit Test | See [test_calculations.py](scripts_and_notebooks/scripts/test_calculations.py) or below.
 ```
 def test_get_pv():
     """
@@ -479,7 +479,7 @@ Sprint | 2
 Assigned To | Tony
 Description | Pre-process ERA5 data so that it is ready to be used to train the model.
 Acceptance Criteria | Write a script that determines if the data is pre-processed correctly for the model. Ensure that the ERA5 data has the correct dimensions for both surface and pressure level datasets.
-Unit Test | See test_datasets.py or below
+Unit Test | See [test_datasets.py](scripts_and_notebooks/scripts/test_datasets.py) or below.
 ```
 def test_load_local_datasets():
     """
