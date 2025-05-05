@@ -22,7 +22,7 @@ For more information on versions, please refer to the [environment.yml](environm
 
 ---
 ### Data 
-To run this repository, you will need to download ERA5 netCDF data as well as ERA5 area-averaged CSV data from this public [OneDrive folder](https://niuits-my.sharepoint.com/:f:/g/personal/z1969782_students_niu_edu/Esruustb6jtEuK4M4geS8doBmiDO0sMuesT3wtBhtge6eA?e=sSzDOt).. If you have difficulties accessing the data, please email Tony (aillenden@niu.edu) or Hunter (hmartinezbuehrer1@niu.edu).
+To run this repository, you will need to download ERA5 netCDF data as well as ERA5 area-averaged CSV data from this public [OneDrive folder](https://niuits-my.sharepoint.com/:f:/g/personal/z1969782_students_niu_edu/Esruustb6jtEuK4M4geS8doBmiDO0sMuesT3wtBhtge6eA?e=sSzDOt). If you have difficulties accessing the data, please email Tony (aillenden@niu.edu) or Hunter (hmartinezbuehrer1@niu.edu).
 
 ---
 ### Geoscience Problem & Background
